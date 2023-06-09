@@ -9,17 +9,17 @@ from . import get_aiohttp_session, shiki_api
 from ..type_hints import JsonObject
 
 
-cache.setup("mem://", prefix="user_info", size=100)
+cache.setup("mem://", prefix="user_card", size=100)
 
 ANIME_MANGA_MEAN = 125
-ANIME_MANGA_WEIGHT = 3
+ANIME_MANGA_WEIGHT = 2
 SCORE_MEAN = 0.5
 SCORE_WEIGHT = 2
 CONTENT_MEAN = 1
-CONTENT_WEIGHT = 5
+CONTENT_WEIGHT = 3
 EDITS_MEAN = 9
-EDITS_WEIGHT = 4
-COMMENTS_MEAN = 72
+EDITS_WEIGHT = 3
+COMMENTS_MEAN = 7
 COMMENTS_WEIGHT = 1
 TOTAL_WEIGHT = (
     ANIME_MANGA_WEIGHT +
@@ -60,7 +60,7 @@ def calculate_rank(user_info: UserInfo) -> Tuple[str, int]:
 
     score = (
         ANIME_MANGA_WEIGHT * expsf(am_count, 1 / ANIME_MANGA_MEAN) +
-        SCORE_WEIGHT * expsf(user_info.scores_count / am_count, 1 / SCORE_MEAN) +
+        SCORE_WEIGHT * expsf(user_info.scores_count / (am_count or 1), 1 / SCORE_MEAN) +
         CONTENT_WEIGHT * expsf(user_info.content_count, 1 / CONTENT_MEAN) +
         EDITS_WEIGHT * expsf(user_info.edits_count, 1 / EDITS_MEAN) +
         COMMENTS_WEIGHT * expsf(user_info.comments_count, 1 / COMMENTS_MEAN)
@@ -92,7 +92,7 @@ def get_score_count(scores: Dict[str, Any]) -> int:
     return s
 
 
-@cache(ttl="5m", prefix="user_info", key="{user_id}")
+@cache(ttl="5m", prefix="user_card", key="{user_id}")
 async def fetch_user_card(user_id: int) -> UserCard:
     api_user = await fetch_api_user(user_id)
     image_user = await fetch_user_image(api_user["image"]["x64"])
