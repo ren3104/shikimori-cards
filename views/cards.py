@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, send_file
+from shikithon.exceptions import ShikimoriAPIResponseError
 
 from io import BytesIO
 import time
@@ -10,12 +11,20 @@ from src.cards.user_card import render_user_card
 bp_cards = Blueprint("cards", __name__)
 
 
-@bp_cards.route("/user/<int:user_id>")
-async def user_card(user_id: int):
-    if not isinstance(user_id, int) or user_id <= 0:
+@bp_cards.route("/user/<string:user_id>")
+async def user_card(user_id: str):
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        pass
+
+    if isinstance(user_id, int) and user_id <= 0:
         abort(404)
     
-    user_card = await fetch_user_card(user_id)
+    try:
+        user_card = await fetch_user_card(user_id)
+    except ShikimoriAPIResponseError:
+        abort(404)
 
     b = BytesIO(render_user_card(user_card).encode("utf-8"))
     b.seek(0)

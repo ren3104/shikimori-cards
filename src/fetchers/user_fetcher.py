@@ -1,9 +1,10 @@
 from cashews import cache
+from shikithon.utils import Utils
 from selectolax.parser import HTMLParser
 
 from dataclasses import dataclass
 import base64
-from typing import cast, Any, Dict, Tuple
+from typing import cast, Any, Union, Dict, Tuple
 
 from . import get_aiohttp_session, shiki_api
 from ..type_hints import JsonObject
@@ -93,7 +94,7 @@ def get_score_count(scores: Dict[str, Any]) -> int:
 
 
 @cache(ttl="5m", prefix="user_card", key="{user_id}")
-async def fetch_user_card(user_id: int) -> UserCard:
+async def fetch_user_card(user_id: Union[str, int]) -> UserCard:
     api_user = await fetch_api_user(user_id)
     image_user = await fetch_user_image(api_user["image"]["x64"])
     html_user = await fetch_html_user(api_user["nickname"])
@@ -125,10 +126,13 @@ async def fetch_user_card(user_id: int) -> UserCard:
     return UserCard(user_info, rank, score)
 
 
-async def fetch_api_user(user_id: int) -> JsonObject:
+async def fetch_api_user(user_id: Union[str, int]) -> JsonObject:
     async with shiki_api:
+        is_nickname = True if isinstance(user_id, str) else None
+        query_dict = Utils.create_query_dict(is_nickname=is_nickname)
         return await shiki_api.request(
-            url=shiki_api.endpoints.user(user_id)
+            url=shiki_api.endpoints.user(user_id),
+            query=query_dict
         )
     
 
