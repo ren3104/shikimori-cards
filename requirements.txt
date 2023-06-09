@@ -1,3 +1,4 @@
+uvloop==0.17.0
 Flask[async]==2.3.2
 asgiref==3.7.2
 aiohttp[speedups]==3.8.4

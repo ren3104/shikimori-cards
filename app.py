@@ -1,3 +1,4 @@
+import uvloop
 from flask import Flask, g
 from asgiref.wsgi import WsgiToAsgi
 from aiohttp import ClientSession
@@ -8,6 +9,7 @@ from views.main import bp_main
 from views.cards import bp_cards
 
 
+uvloop.install()
 wsgi_app = Flask(__name__)
 wsgi_app.register_blueprint(bp_main)
 wsgi_app.register_blueprint(bp_cards)

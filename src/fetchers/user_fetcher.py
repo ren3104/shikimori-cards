@@ -2,6 +2,7 @@ from cashews import cache
 from shikithon.utils import Utils
 from selectolax.parser import HTMLParser
 
+import asyncio
 from dataclasses import dataclass
 import base64
 from typing import Any, Union, Dict, Tuple
@@ -95,8 +96,10 @@ def get_score_count(scores: Dict[str, Any]) -> int:
 @cache(ttl="6h", prefix="user_card", key="{user_id}")
 async def fetch_user_card(user_id: Union[str, int]) -> UserCard:
     api_user = await fetch_api_user(user_id)
-    image_user = await fetch_user_image(api_user["image"]["x64"])
-    html_user = await fetch_html_user(api_user["nickname"])
+    image_user, html_user = await asyncio.gather(
+        fetch_user_image(api_user["image"]["x64"]),
+        fetch_html_user(api_user["nickname"])
+    )
 
     user_info = UserInfo(
         id=api_user["id"],
