@@ -4,7 +4,7 @@ from selectolax.parser import HTMLParser
 
 from dataclasses import dataclass
 import base64
-from typing import cast, Any, Union, Dict, Tuple
+from typing import Any, Union, Dict, Tuple
 
 from . import get_aiohttp_session, shiki_api
 from ..type_hints import JsonObject
@@ -36,7 +36,6 @@ class UserInfo:
     id: int
     nickname: str
     image: str
-    last_online: str
     anime_count: int
     manga_count: int
     scores_count: int
@@ -93,7 +92,7 @@ def get_score_count(scores: Dict[str, Any]) -> int:
     return s
 
 
-@cache(ttl="5m", prefix="user_card", key="{user_id}")
+@cache(ttl="6h", prefix="user_card", key="{user_id}")
 async def fetch_user_card(user_id: Union[str, int]) -> UserCard:
     api_user = await fetch_api_user(user_id)
     image_user = await fetch_user_image(api_user["image"]["x64"])
@@ -103,7 +102,6 @@ async def fetch_user_card(user_id: Union[str, int]) -> UserCard:
         id=api_user["id"],
         nickname=api_user["nickname"],
         image=image_user,
-        last_online=cast(str, api_user["last_online"]).capitalize(),
         anime_count=api_user["stats"]["statuses"]["anime"][2]["size"],
         manga_count=api_user["stats"]["statuses"]["manga"][2]["size"],
         scores_count=get_score_count(api_user["stats"]["scores"]),

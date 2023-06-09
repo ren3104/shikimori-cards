@@ -16,16 +16,11 @@ TEMPLATE = Template("""
 <style>
 .nickname {
     font-family: sans-serif;
-    font-size: 16px;
+    font-size: 24px;
     fill: #fff;
 }
 .id {
-    font-size: 14px;
-    fill: #9e9e9e;
-}
-.last_online {
-    font-family: sans-serif;
-    font-size: 14px;
+    font-size: 18px;
     fill: #9e9e9e;
 }
 .stat {
@@ -63,8 +58,7 @@ TEMPLATE = Template("""
     <mask id="mask" fill="#fff"><circle cx="30" cy="30" r="30" /></mask>
     <image width="60" height="60" mask="url(#mask)" xlink:href="$image" />
 </g>
-<text x="90" y="45" class="nickname">${nickname} <tspan class="id">#${id}</tspan></text>
-<text x="90" y="69" class="last_online">$last_online</text>
+<text x="90" y="56" class="nickname">${nickname} <tspan class="id">#${id}</tspan></text>
 <text x="20" y="106" class="stat">Просмотрено аниме:<tspan x="250">${anime_count}</tspan></text>
 <text x="20" y="132" class="stat">Прочитано манги:<tspan x="250">${manga_count}</tspan></text>
 <text x="20" y="158" class="stat">Выставлено оценок:<tspan x="250">${scores_count}</tspan></text>
