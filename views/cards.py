@@ -32,7 +32,5 @@ async def user_card(user_id: str):
     return send_file(
         b,
         mimetype="image/svg+xml",
-        download_name=f"user_card_{user_id}.svg",
-        last_modified=int(time.time()),
-        max_age=300
+        download_name=f"user_card_{user_id}.svg"
     )
