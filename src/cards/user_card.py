@@ -38,6 +38,10 @@ text {
     dominant-baseline: central;
     text-anchor: middle;
 }
+.rank-score {
+    font-size: 12px;
+    text-anchor: middle;
+}
 .rank-circle-back {
     stroke: ${bar_back_color};
     fill: none;
@@ -76,6 +80,7 @@ CARD_TEMPLATE = """
     <circle class="rank-circle-back" r="50"/>
     <circle class="rank-circle" r="50"/>
     <text class="rank">{rank}</text>
+    <text y="72" class="rank-score">Топ {rank_score}%</text>
 </g>
 </svg>
 """
@@ -124,6 +129,7 @@ def render_user_card(user_card: UserCard, options: Dict[str, Any]) -> str:
     return CARD_TEMPLATE.format(
         **asdict(user_card.info),
         rank=user_card.rank,
+        rank_score=user_card.score,
         avatar=get_avatar(theme.avatar_round, user_card.info.image),
         styles=get_styles(
             progress=100 - user_card.score,
