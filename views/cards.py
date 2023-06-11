@@ -1,8 +1,7 @@
-from flask import Blueprint, abort, send_file
+from flask import Blueprint, request, abort, send_file
 from shikithon.exceptions import ShikimoriAPIResponseError
 
 from io import BytesIO
-import time
 
 from src.fetchers.user_fetcher import fetch_user_card
 from src.cards.user_card import render_user_card
@@ -26,7 +25,14 @@ async def user_card(user_id: str):
     except ShikimoriAPIResponseError:
         abort(404)
 
-    b = BytesIO(render_user_card(user_card).encode("utf-8"))
+    svg = render_user_card(
+        user_card=user_card,
+        options={
+            "theme": request.args.get("theme", "default")
+        }
+    )
+
+    b = BytesIO(svg.encode("utf-8"))
     b.seek(0)
 
     return send_file(
