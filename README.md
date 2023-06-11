@@ -8,13 +8,15 @@
 ## Как использовать
 Скопируйте и вставьте это в своем `BBCode` контенте.
 
-Измените значение `<user_id>` на ваш **никнейм** или `id` пользователя Шикимори.
+Замените `<user_id>` в ссылке ниже на ваш **никнейм** или `id` пользователя Шикимори.
 
 > **Note**
 > Регистр никнейма учитывается! Если есть пробелы в никнейме, то замените их `+`!
 
 ```
-[url=https://github.com/ren3104/shikimori-cards][img no-zoom]https://shikimori-cards.vercel.app/user/<user_id>[/img][/url]
+[url=https://github.com/ren3104/shikimori-cards]
+[img no-zoom]https://shikimori-cards.vercel.app/user/<user_id>[/img]
+[/url]
 ```
 
 Без `BBCode`:
