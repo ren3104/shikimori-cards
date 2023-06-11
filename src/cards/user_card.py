@@ -16,7 +16,6 @@ text {
 .background {
     fill: ${bg_color};
     stroke: ${border_color};
-    rx: ${border_radius};
 }
 .nickname {
     font-size: 20px;
@@ -66,7 +65,7 @@ CARD_TEMPLATE = """
 <style>
 {styles}
 </style>
-<rect width="100%" height="100%" class="background" />
+<rect width="100%" height="100%" class="background" rx="{border_radius}" />
 {avatar}
 <text x="90" y="45" class="nickname">{nickname}</text>
 <text x="90" y="71" class="id">#{id}</text>
@@ -93,19 +92,18 @@ def calculate_circle_progress(value: int) -> int:
     return int(arc_offset)
 
 
-def get_styles(progress: int, theme: CardOptions) -> str:
+def get_styles(progress: int, theme: CardOptions, options: Dict[str, Any]) -> str:
     return STYLE_TEMPLATE.substitute(
-        bg_color=theme.bg_color,
-        border_color=theme.border_color,
-        border_radius=theme.border_radius,
-        title_color=theme.title_color,
-        text_color=theme.text_color,
-        stat_color=theme.stat_color,
-        bar_back_color=theme.bar_back_color,
-        bar_color=theme.bar_color,
+        bg_color=options.get("bg_color") or theme.bg_color,
+        border_color=options.get("border_color") or theme.border_color,
+        title_color=options.get("title_color") or theme.title_color,
+        text_color=options.get("text_color") or theme.text_color,
+        stat_color=options.get("stat_color") or theme.stat_color,
+        bar_back_color=options.get("bar_back_color") or theme.bar_back_color,
+        bar_color=options.get("bar_color") or theme.bar_color,
         bar_round=(
             "round"
-            if (theme.bar_round) else
+            if (options.get("bar_round") or theme.bar_round) else
             "butt"
         ),
         progress=calculate_circle_progress(progress)
@@ -130,9 +128,10 @@ def render_user_card(user_card: UserCard, options: Dict[str, Any]) -> str:
         **asdict(user_card.info),
         rank=user_card.rank,
         rank_score=user_card.score,
-        avatar=get_avatar(theme.avatar_round, user_card.info.image),
-        styles=get_styles(
-            progress=100 - user_card.score,
-            theme=theme
-        )
+        avatar=get_avatar(
+            options.get("avatar_round") or theme.avatar_round,
+            user_card.info.image
+        ),
+        border_radius=options.get("border_radius") or theme.border_radius,
+        styles=get_styles(100 - user_card.score, theme, options)
     )
