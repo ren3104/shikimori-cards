@@ -15,8 +15,8 @@ cache.setup("mem://", prefix="user_card", size=100)
 
 ANIME_MANGA_MEAN = 125
 ANIME_MANGA_WEIGHT = 2
-SCORE_MEAN = 0.5
-SCORE_WEIGHT = 2
+SCORE_MEAN = 0.25
+SCORE_WEIGHT = 1
 CONTENT_MEAN = 1
 CONTENT_WEIGHT = 3
 EDITS_MEAN = 9
@@ -62,25 +62,27 @@ def calculate_rank(user_info: UserInfo) -> Tuple[str, int]:
     score = (
         ANIME_MANGA_WEIGHT * expsf(am_count, 1 / ANIME_MANGA_MEAN) +
         SCORE_WEIGHT * expsf(user_info.scores_count / (am_count or 1), 1 / SCORE_MEAN) +
-        CONTENT_WEIGHT * expsf(user_info.content_count, 1 / CONTENT_MEAN) +
-        EDITS_WEIGHT * expsf(user_info.edits_count, 1 / EDITS_MEAN) +
+        (CONTENT_WEIGHT + EDITS_WEIGHT) * expsf(
+            user_info.content_count + user_info.edits_count,
+            1 / (CONTENT_MEAN + EDITS_MEAN)
+        ) +
         COMMENTS_WEIGHT * expsf(user_info.comments_count, 1 / COMMENTS_MEAN)
     ) / TOTAL_WEIGHT
 
     if score <= 0.1:
-        rank = "S"
+        rank = "S+"
     elif score <= 0.25:
-        rank = "A"
+        rank = "S"
     elif score <= 0.4:
-        rank = "B"
+        rank = "A++"
     elif score <= 0.55:
-        rank = "C"
+        rank = "A+"
     elif score <= 0.7:
-        rank = "D"
+        rank = "A"
     elif score <= 0.8:
-        rank = "E"
+        rank = "B+"
     else:
-        rank = "F"
+        rank = "B"
 
     return rank, int(score * 100)
 

@@ -33,7 +33,7 @@ text {
     fill: ${text_color};
 }
 .rank {
-    font-size: 36px;
+    font-size: 32px;
     alignment-baseline: central;
     dominant-baseline: central;
     text-anchor: middle;
