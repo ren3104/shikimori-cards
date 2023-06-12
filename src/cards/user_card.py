@@ -10,7 +10,7 @@ from ..utils import k_formatter
 RADIUS = 50
 STYLE_TEMPLATE = Template("""\
 text {
-    font-family: {font};
+    font-family: ${font};
     fill: ${text_color};
 }
 .background {
