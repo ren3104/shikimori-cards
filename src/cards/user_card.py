@@ -5,6 +5,7 @@ from typing import Any, Dict
 
 from ..fetchers.user_fetcher import UserCard
 from ..themes import CardOptions, themes
+from ..utils import k_formatter
 
 
 RADIUS = 50
@@ -125,7 +126,14 @@ def render_user_card(user_card: UserCard, options: Dict[str, Any]) -> str:
         theme = themes["default"]
 
     return CARD_TEMPLATE.format(
-        **asdict(user_card.info),
+        id=user_card.info.id,
+        nickname=user_card.info.nickname,
+        anime_count=k_formatter(user_card.info.anime_count),
+        manga_count=k_formatter(user_card.info.manga_count),
+        scores_count=k_formatter(user_card.info.scores_count),
+        content_count=k_formatter(user_card.info.content_count),
+        edits_count=k_formatter(user_card.info.edits_count),
+        comments_count=k_formatter(user_card.info.comments_count),
         rank=user_card.rank,
         rank_score=user_card.score,
         avatar=get_avatar(

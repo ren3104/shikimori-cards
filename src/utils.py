@@ -23,3 +23,9 @@ def parse_hex_color(value: str) -> Optional[str]:
               string=value):
         return "#" + value
     return None
+
+
+def k_formatter(value: int) -> str:
+    if value > 999:
+        return f"{round(value / 1000, 1)}к"
+    return str(value)
