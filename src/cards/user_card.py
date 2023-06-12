@@ -1,6 +1,5 @@
 from math import pi
 from string import Template
-from dataclasses import asdict
 from typing import Any, Dict
 
 from ..fetchers.user_fetcher import UserCard
@@ -11,7 +10,7 @@ from ..utils import k_formatter
 RADIUS = 50
 STYLE_TEMPLATE = Template("""\
 text {
-    font-family: sans-serif;
+    font-family: {font};
     fill: ${text_color};
 }
 .background {
@@ -95,6 +94,7 @@ def calculate_circle_progress(value: int) -> int:
 
 def get_styles(progress: int, theme: CardOptions, options: Dict[str, Any]) -> str:
     return STYLE_TEMPLATE.substitute(
+        font=theme.font,
         bg_color=options.get("bg_color") or theme.bg_color,
         border_color=options.get("border_color") or theme.border_color,
         title_color=options.get("title_color") or theme.title_color,
