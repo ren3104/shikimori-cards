@@ -50,5 +50,6 @@ async def user_card(user_id: str):
     return send_file(
         b,
         mimetype="image/svg+xml",
-        download_name=f"user_card_{user_id}.svg"
+        download_name=f"user_card_{user_id}.svg",
+        max_age=14400
     )
