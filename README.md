@@ -52,6 +52,7 @@ https://shikimori-cards.vercel.app/user/<user_id>
 - `bg_color` - (`color`) цвет фона карточки.
 - `border_color` - (`color`) цвет границы карточки.
 - `border_radius` - (`integer`) скругление углов карточки.
+- `font` - (`string`) шрифт текста.
 - `title_color` - (`color`) цвет заголовка. (Никнейм)
 - `text_color` - (`color`) основной цвет текста.
 - `avatar_round` - (`boolean`) круглая аватарка.
