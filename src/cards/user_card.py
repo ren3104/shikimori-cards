@@ -94,9 +94,9 @@ def calculate_circle_progress(value: int) -> int:
 
 def get_styles(progress: int, theme: CardOptions, options: Dict[str, Any]) -> str:
     return STYLE_TEMPLATE.substitute(
-        font=theme.font,
         bg_color=options.get("bg_color") or theme.bg_color,
         border_color=options.get("border_color") or theme.border_color,
+        font=options.get("font") or theme.font,
         title_color=options.get("title_color") or theme.title_color,
         text_color=options.get("text_color") or theme.text_color,
         stat_color=options.get("stat_color") or theme.stat_color,

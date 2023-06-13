@@ -33,6 +33,7 @@ async def user_card(user_id: str):
             "bg_color": parse_hex_color(request.args.get("bg_color", "")),
             "border_color": parse_hex_color(request.args.get("border_color", "")),
             "border_radius": parse_integer(request.args.get("border_radius", "")),
+            "font": request.args.get("font", type=str),
             "title_color": parse_hex_color(request.args.get("title_color", "")),
             "text_color": parse_hex_color(request.args.get("text_color", "")),
             "avatar_round": parse_boolean(request.args.get("avatar_round", "")),
