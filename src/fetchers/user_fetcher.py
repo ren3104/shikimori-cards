@@ -52,7 +52,7 @@ class UserCard:
     score: int
 
 
-def expsf(x, l = 1):
+def expsf(x: float, l: float = 1) -> float:
     return 2 ** (-l * x)
 
 
@@ -95,7 +95,7 @@ def get_score_count(scores: Dict[str, Any]) -> int:
     return s
 
 
-@cache(ttl="6h", prefix="user_card", key="{user_id}")
+@cache(ttl="4h", prefix="user_card", key="{user_id}")
 async def fetch_user_card(user_id: Union[str, int]) -> UserCard:
     api_user = await fetch_api_user(user_id)
     image_user, html_user = await asyncio.gather(

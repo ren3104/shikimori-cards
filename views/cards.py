@@ -36,11 +36,14 @@ async def user_card(user_id: str):
             "font": request.args.get("font", type=str),
             "title_color": parse_hex_color(request.args.get("title_color", "")),
             "text_color": parse_hex_color(request.args.get("text_color", "")),
+            "animate": parse_boolean(request.args.get("animate", "")),
             "avatar_round": parse_boolean(request.args.get("avatar_round", "")),
+            "icon_color": parse_hex_color(request.args.get("icon_color", "")),
             "stat_color": parse_hex_color(request.args.get("stat_color", "")),
             "bar_back_color": parse_hex_color(request.args.get("bar_back_color", "")),
             "bar_color": parse_hex_color(request.args.get("bar_color", "")),
-            "bar_round": parse_boolean(request.args.get("bar_round", ""))
+            "bar_round": parse_boolean(request.args.get("bar_round", "")),
+            "show_icons": parse_boolean(request.args.get("show_icons", ""))
         }
     )
 
