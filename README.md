@@ -55,13 +55,15 @@ https://shikimori-cards.vercel.app/user/<user_id>
 - `font` - (`string`) шрифт текста.
 - `title_color` - (`color`) цвет заголовка. (Никнейм)
 - `text_color` - (`color`) основной цвет текста.
+- `animate` - (`boolean`) плавное появление карточки.
 - `avatar_round` - (`boolean`) круглая аватарка.
 - `stat_color` - (`color`) цвет "ключа" статистики.
 - `bar_back_color` - (`color`) цвет ранговой окружности.
 - `bar_color` - (`color`) цвет заполнения ранговой окружности.
 - `bar_round` - (`boolean`) круглые концы заполнения ранговой окружности.
+- `show_icons` - (`boolean`) показывать иконки.
 
 ### Пример
 ```
-https://shikimori-cards.vercel.app/user/<user_id>?bg_color=00000000&avatar_round=true&bar_round=1
+https://shikimori-cards.vercel.app/user/<user_id>?bg_color=0000&avatar_round=true&bar_round=1
 ```
