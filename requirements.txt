@@ -6,3 +6,4 @@ aiohttp[speedups]==3.8.4
 shikithon==2.5.1
 selectolax==0.3.14
 cashews[speedup]==6.2.0
+PyHyphen==4.0.3

@@ -1,5 +1,10 @@
 from re import search
-from typing import Optional
+from hyphen import Hyphenator
+from hyphen.textwrap2 import wrap
+from typing import Optional, List
+
+
+HYPHENATOR = Hyphenator("ru_RU", directory="pyhyphen")
 
 
 def parse_integer(value: str) -> Optional[int]:
@@ -29,3 +34,21 @@ def k_formatter(value: int) -> str:
     if value > 999:
         return f"{round(value / 1000, 1)}к"
     return str(value)
+
+
+def wrap_text_multiline(text: str, width: int = 59, max_lines: int = 3) -> List[str]:
+    placeholder = " [...]"
+    wrapped = wrap(
+        text=text,
+        width=width,
+        max_lines=max_lines,
+        placeholder=placeholder,
+        use_hyphenator=HYPHENATOR
+    )
+    if wrapped[-1].endswith(placeholder):
+        wrapped[-1] = wrapped[-1][:-(len(placeholder) + 3)] + "..."
+    return wrapped
+
+
+def measure_text(text: str, font_size: int = 10) -> float:
+    return len(text) * 0.6 * font_size
