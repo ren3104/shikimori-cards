@@ -87,5 +87,5 @@ async def collection_card(collection_id: int):
         b,
         mimetype="image/svg+xml",
         download_name=f"collection_card_{collection_id}.svg",
-        max_age=0
+        max_age=14400
     )
