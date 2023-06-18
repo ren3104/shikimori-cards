@@ -1,10 +1,13 @@
 from flask import Blueprint, request, abort, send_file
+from aiohttp import ClientResponseError
 from shikithon.exceptions import ShikimoriAPIResponseError
 
 from io import BytesIO
 
 from src.fetchers.user_fetcher import fetch_user_card
+from src.fetchers.collection_fetcher import fetch_collection_card
 from src.cards.user_card import render_user_card
+from src.cards.collection_card import render_collection_card
 from src.utils import parse_integer, parse_boolean, parse_hex_color
 
 
@@ -22,18 +25,17 @@ async def user_card(user_id: str):
         abort(404)
     
     try:
-        user_card = await fetch_user_card(user_id)
+        card = await fetch_user_card(user_id)
     except ShikimoriAPIResponseError:
         abort(404)
 
     svg = render_user_card(
-        user_card=user_card,
+        user_card=card,
         options={
             "theme": request.args.get("theme", "default"),
             "bg_color": parse_hex_color(request.args.get("bg_color", "")),
             "border_color": parse_hex_color(request.args.get("border_color", "")),
             "border_radius": parse_integer(request.args.get("border_radius", "")),
-            "font": request.args.get("font", type=str),
             "title_color": parse_hex_color(request.args.get("title_color", "")),
             "text_color": parse_hex_color(request.args.get("text_color", "")),
             "animate": parse_boolean(request.args.get("animate", "")),
@@ -55,4 +57,35 @@ async def user_card(user_id: str):
         mimetype="image/svg+xml",
         download_name=f"user_card_{user_id}.svg",
         max_age=14400
+    )
+
+
+@bp_cards.route("/collection/<int:collection_id>")
+async def collection_card(collection_id: int):
+    try:
+        card = await fetch_collection_card(collection_id)
+    except ClientResponseError:
+        abort(404)
+
+    svg = render_collection_card(
+        collection_card=card,
+        options={
+            "theme": request.args.get("theme", "default"),
+            "bg_color": parse_hex_color(request.args.get("bg_color", "")),
+            "border_color": parse_hex_color(request.args.get("border_color", "")),
+            "border_radius": parse_integer(request.args.get("border_radius", "")),
+            "title_color": parse_hex_color(request.args.get("title_color", "")),
+            "text_color": parse_hex_color(request.args.get("text_color", "")),
+            "icon_color": parse_hex_color(request.args.get("icon_color", ""))
+        }
+    )
+
+    b = BytesIO(svg.encode("utf-8"))
+    b.seek(0)
+
+    return send_file(
+        b,
+        mimetype="image/svg+xml",
+        download_name=f"collection_card_{collection_id}.svg",
+        max_age=0
     )
