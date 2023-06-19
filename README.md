@@ -5,7 +5,7 @@
 
 <img src="assets/user_card_555400.svg" alt="User card example">
 
-## Как использовать
+## Карточка пользователя
 Скопируйте и вставьте это в своем `BBCode` контенте.
 
 Замените `<user_id>` в ссылке ниже на ваш **никнейм** или `id` пользователя Шикимори.
@@ -28,6 +28,15 @@ https://shikimori-cards.vercel.app/user/<user_id>
 > **Note**
 > Доступные ранги: S+ (топ 10%), S (топ 25%), A++ (топ 40%), A+ (топ 55%), A (топ 70%), B+ (топ 80%) и B (все).  Значения рассчитываются с использованием [кумулятивной функции распределения](https://ru.wikipedia.org/wiki/%D0%A4%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D1%8F_%D1%80%D0%B0%D1%81%D0%BF%D1%80%D0%B5%D0%B4%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F) используя списки аниме и манги, отношение оценок к спискам аниме и манги, рецензии, отзывы, коллекции, статьи, правки, комментарии. Реализацию можно посмотреть в [src/fetchers/user_fetcher.py (calculate_rank)](src/fetchers/user_fetcher.py).
 
+## Карточка коллекции
+Замените `<collection_id>` на `id` вашей коллекции в ссылке ниже.
+
+```
+https://shikimori-cards.vercel.app/collection/<collection_id>
+```
+
+![Коллекция 14007](https://shikimori-cards.vercel.app/collection/14007)
+
 ## Готовые темы
 | | | |
 | :--: | :--: | :--: |
@@ -39,31 +48,39 @@ https://shikimori-cards.vercel.app/user/<user_id>
 [add-theme]: https://github.com/ren3104/shikimori-cards/blob/master/src/themes.py
 
 ## Настройка темы
-Вы можете настроить внешний вид своей карты пользователя по своему усмотрению с помощью параметров запроса.
+Вы можете настроить внешний вид своих карточек по своему усмотрению с помощью параметров запроса.
+
+Такие темы как `shiki-theme` используют `css` переменные для подстраивания под пользовательские настройки `css` темы.
 
 ### Типы
-- `string` - строка.
-- `integer` - целое число.
-- `boolean` - `true` | `false` | 1 | 0.
-- `color` - цвет в формате `hex` **без** `#`. Прозрачность можно указать с помощью `hex8`.
+- `string` - строка
+- `integer` - целое число
+- `boolean` - `true` | `false` | 1 | 0
+- `color` - цвет в формате `hex` **без** `#`. Прозрачность можно указать с помощью `hex8` или `hex4`
 
-### Параметры
-- `theme` - (`string`) название темы. По умолчанию: `default`.
-- `bg_color` - (`color`) цвет фона карточки.
-- `border_color` - (`color`) цвет границы карточки.
-- `border_radius` - (`integer`) скругление углов карточки.
-- `font` - (`string`) шрифт текста.
-- `title_color` - (`color`) цвет заголовка. (Никнейм)
-- `text_color` - (`color`) основной цвет текста.
-- `animate` - (`boolean`) плавное появление карточки.
-- `avatar_round` - (`boolean`) круглая аватарка.
-- `stat_color` - (`color`) цвет "ключа" статистики.
-- `bar_back_color` - (`color`) цвет ранговой окружности.
-- `bar_color` - (`color`) цвет заполнения ранговой окружности.
-- `bar_round` - (`boolean`) круглые концы заполнения ранговой окружности.
-- `show_icons` - (`boolean`) показывать иконки.
+### Общие параметры
+- `theme` - (`string`) название темы. По умолчанию: `default`
+- `bg_color` - (`color`) цвет фона карточки
+- `border_color` - (`color`) цвет границы карточки
+- `border_radius` - (`integer`) скругление углов карточки
+- `title_color` - (`color`) цвет заголовка
+- `text_color` - (`color`) основной цвет текста
+- `animate` - (`boolean`) плавное появление карточки
+
+### Параметры пользовательской карточки
+- `avatar_round` - (`boolean`) круглая аватарка
+- `show_icons` - (`boolean`) показывать иконки
+- `stat_color` - (`color`) цвет "ключа" статистики
+- `bar_back_color` - (`color`) цвет ранговой окружности
+- `bar_color` - (`color`) цвет заполнения ранговой окружности
+- `bar_round` - (`boolean`) круглые концы заполнения ранговой окружности
 
 ### Пример
 ```
 https://shikimori-cards.vercel.app/user/<user_id>?bg_color=0000&avatar_round=true&bar_round=1
 ```
+
+## Разработка
+1. Клонируйте репозиторий
+2. Установите необходимые зависимости с помощью `pip install -U -r dev-requirements.txt`
+3. Запустите сервер с помощью `uvicorn app:app` или с авто перезагрузкой `uvicorn app:app --reload`
