@@ -52,12 +52,16 @@ async def user_card(user_id: str):
     b = BytesIO(svg.encode("utf-8"))
     b.seek(0)
 
-    return send_file(
+    resp = send_file(
         b,
         mimetype="image/svg+xml",
-        download_name=f"user_card_{user_id}.svg",
-        max_age=14400
+        download_name=f"user_card_{user_id}.svg"
     )
+
+    cache_seconds = 14400
+    resp.headers["Cache-Control"] = f"max-age={cache_seconds}, s-maxage={cache_seconds}"
+
+    return resp
 
 
 @bp_cards.route("/collection/<int:collection_id>")
@@ -83,9 +87,13 @@ async def collection_card(collection_id: int):
     b = BytesIO(svg.encode("utf-8"))
     b.seek(0)
 
-    return send_file(
+    resp = send_file(
         b,
         mimetype="image/svg+xml",
-        download_name=f"collection_card_{collection_id}.svg",
-        max_age=14400
+        download_name=f"collection_card_{collection_id}.svg"
     )
+
+    cache_seconds = 14400
+    resp.headers["Cache-Control"] = f"max-age={cache_seconds}, s-maxage={cache_seconds}"
+
+    return resp
