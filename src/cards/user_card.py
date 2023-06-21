@@ -23,7 +23,8 @@ CARD_TEMPLATE = Template("""\
 </desc>
 <style>
 text {
-    font-family: {{ options.font or theme.font }};
+    font-family: monospace;
+    font-size: 16px;
     fill: {{ options.text_color or theme.text_color }};
 }
 .background {
@@ -33,9 +34,6 @@ text {
 .nickname {
     font-size: 20px;
     fill: {{ options.title_color or theme.title_color }};
-}
-.id {
-    font-size: 16px;
 }
 {% if show_icons %}
 .icon {
@@ -116,8 +114,8 @@ text {
     {% if show_icons %}
     <svg y="-15" width="20" height="20" viewBox="0 0 20 20" class="icon"><path d="{{ stat.icon }}"/></svg>
     {% endif %}
-    <text {% if show_icons %}x="30"{% endif %} class="stat">{{ stat.label }}:</text>
-    <text {% if show_icons %}x="250"{% else %}x="220"{% endif %} class="stat-value">{{ k_formatter(stat.value) }}</text>
+    <text {% if show_icons %}x="30"{% endif %}>{{ stat.label }}:</text>
+    <text {% if show_icons %}x="270"{% else %}x="250"{% endif %} class="stat-value">{{ k_formatter(stat.value) }}</text>
 </g>
 {% endfor %}
 <g transform="translate(407, 163)">
