@@ -1,7 +1,10 @@
+from cashews import cache
 from flask import g
 from aiohttp import ClientSession
 from shikithon import ShikimoriAPI
 
+
+cache.setup("mem://", size=100)
 
 shiki_api = ShikimoriAPI()
 

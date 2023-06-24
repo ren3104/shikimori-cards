@@ -11,8 +11,6 @@ from . import get_aiohttp_session, shiki_api
 from ..type_hints import JsonObject
 
 
-cache.setup("mem://", prefix="user_card", size=100)
-
 ANIME_MANGA_MEAN = 125
 ANIME_MANGA_WEIGHT = 2
 SCORE_MEAN = 0.25
