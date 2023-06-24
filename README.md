@@ -3,8 +3,6 @@
     <p>Динамически генерируемые карточки для Шикимори. Вдохновлено <a href="https://github.com/anuraghazra/github-readme-stats">github-readme-stats</a>.</p>
 </div>
 
-<img src="assets/user_card_555400.svg" alt="User card example">
-
 ## Карточка пользователя
 Скопируйте и вставьте это в своем `BBCode` контенте.
 
@@ -50,7 +48,7 @@ https://shikimori-cards.vercel.app/collection/<collection_id>
 ## Настройка темы
 Вы можете настроить внешний вид своих карточек по своему усмотрению с помощью параметров запроса.
 
-Такие темы как `shiki-theme` используют `css` переменные для подстраивания под пользовательские настройки `css` темы.
+Такие темы как `shiki-theme` используют `css` переменные для подстраивания под пользовательские настройки `css` темы сайта.
 
 ### Типы
 - `string` - строка
@@ -77,7 +75,7 @@ https://shikimori-cards.vercel.app/collection/<collection_id>
 
 ### Пример
 ```
-https://shikimori-cards.vercel.app/user/<user_id>?bg_color=0000&avatar_round=true&bar_round=1
+https://shikimori-cards.vercel.app/user/<user_id>?bg_color=0000&show_icons=true&animate=1
 ```
 
 ## Разработка

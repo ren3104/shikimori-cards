@@ -18,7 +18,7 @@ class CollectionCard:
 
 
 @cache(ttl="4h", prefix="collection_card", key="{collection_id}")
-async def fetch_collection_card(collection_id: int):
+async def fetch_collection_card(collection_id: int) -> CollectionCard:
     async with get_aiohttp_session().request(
         method="GET",
         url=f"https://shikimori.me/collections/{collection_id}",
