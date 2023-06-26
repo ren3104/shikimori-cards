@@ -23,7 +23,7 @@ CARD_TEMPLATE = Template("""\
 </desc>
 <style>
 text {
-    font-family: monospace;
+    font-family: Monaco, Menlo, Consolas, Ubuntu Mono, Courier New, monospace;
     font-size: 16px;
     fill: {{ options.text_color or theme.text_color }};
 }
