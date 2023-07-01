@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import base64
 from typing import Any, Union, Dict, Tuple
 
-from . import get_aiohttp_session, shiki_api
+from . import get_aiohttp_session, get_shikimori_session
 from ..type_hints import JsonObject
 
 
@@ -128,13 +128,15 @@ async def fetch_user_card(user_id: Union[str, int]) -> UserCard:
 
 
 async def fetch_api_user(user_id: Union[str, int]) -> JsonObject:
-    async with shiki_api:
-        is_nickname = True if isinstance(user_id, str) else None
-        query_dict = Utils.create_query_dict(is_nickname=is_nickname)
-        return await shiki_api.request(
-            url=shiki_api.endpoints.user(user_id),
-            query=query_dict
-        )
+    shikimori_api = await get_shikimori_session()
+
+    is_nickname = True if isinstance(user_id, str) else None
+    query_dict = Utils.create_query_dict(is_nickname=is_nickname)
+    
+    return await shikimori_api.request(
+        url=shikimori_api.endpoints.user(user_id),
+        query=query_dict
+    )
     
 
 async def fetch_user_image(url: str) -> str:
