@@ -5,7 +5,7 @@
     "builds": [
         {
             "src": "app.py",
-            "use": "@vercel/python@3.1.60"
+            "use": "@vercel/python"
         }
     ],
     "env": {

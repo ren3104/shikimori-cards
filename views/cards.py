@@ -90,7 +90,6 @@ async def collection_card(collection_id: int):
     resp = send_file(
         b,
         mimetype="image/svg+xml",
-        as_attachment=False,
         download_name=f"collection_card_{collection_id}.svg"
     )
 
