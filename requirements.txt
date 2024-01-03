@@ -1,5 +1,5 @@
 uvloop==0.19.0
-Flask[async]==3.0.0
+Flask[async]==2.3.2
 aiohttp[speedups]==3.9.1
 selectolax==0.3.17
 shikithon==2.6.2
