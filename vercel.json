@@ -5,12 +5,9 @@
     "builds": [
         {
             "src": "app.py",
-            "use": "@vercel/python"
+            "use": "@vercel/python@3.1.60"
         }
     ],
-    "env": {
-        "VERCEL_CLI_VERSION": "vercel@31.0.1"
-    },
     "routes": [
         {
             "src": "/(.*)",
