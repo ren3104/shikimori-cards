@@ -158,7 +158,7 @@ async def fetch_html_user(user_name: str) -> JsonObject:
 
     async with get_aiohttp_session().request(
         method="GET",
-        url="https://shikimori.me/" + user_name
+        url="https://shikimori.one/" + user_name
     ) as response:
         
         html_tree = HTMLParser(await response.text())
