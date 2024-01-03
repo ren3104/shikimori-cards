@@ -8,6 +8,9 @@
             "use": "@vercel/python"
         }
     ],
+    "env": {
+        "VERCEL_CLI_VERSION": "vercel@31.0.1"
+    },
     "routes": [
         {
             "src": "/(.*)",
