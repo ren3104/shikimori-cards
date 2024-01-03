@@ -1,9 +1,9 @@
-uvloop==0.19.0
+uvloop==0.17.0
 Flask[async]==2.3.2
 Jinja2==3.1.2
 asgiref==3.7.2
-aiohttp[speedups]==3.9.1
-selectolax==0.3.17
-shikithon==2.6.2
-cashews[speedup]==6.4.0
+aiohttp[speedups]==3.8.4
+shikithon==2.5.2
+selectolax==0.3.14
+cashews[speedup]==6.2.0
 PyHyphen==4.0.3
