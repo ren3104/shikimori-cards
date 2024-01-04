@@ -1,4 +1,4 @@
-from flask import Blueprint, request, abort, send_file
+from quart import Blueprint, request, abort, send_file
 from aiohttp import ClientResponseError
 from shikithon.exceptions import ShikimoriAPIResponseError
 
@@ -52,10 +52,11 @@ async def user_card(user_id: str):
     b = BytesIO(svg.encode("utf-8"))
     b.seek(0)
 
-    resp = send_file(
+    resp = await send_file(
         b,
         mimetype="image/svg+xml",
-        download_name=f"user_card_{user_id}.svg"
+        as_attachment=False,
+        attachment_filename=f"user_card_{user_id}.svg"
     )
 
     cache_seconds = 14400
@@ -87,10 +88,11 @@ async def collection_card(collection_id: int):
     b = BytesIO(svg.encode("utf-8"))
     b.seek(0)
 
-    resp = send_file(
+    resp = await send_file(
         b,
         mimetype="image/svg+xml",
-        download_name=f"collection_card_{collection_id}.svg"
+        as_attachment=False,
+        attachment_filename=f"collection_card_{collection_id}.svg"
     )
 
     cache_seconds = 14400

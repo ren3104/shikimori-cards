@@ -1,5 +1,5 @@
 from cashews import cache
-from flask import g
+from quart import g
 from aiohttp import ClientSession
 from shikithon import ShikimoriAPI
 

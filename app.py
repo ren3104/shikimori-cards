@@ -1,5 +1,5 @@
 import uvloop
-from flask import Flask, g
+from quart import Quart, g
 from aiohttp import ClientSession
 from shikithon import ShikimoriAPI
 
@@ -11,7 +11,7 @@ from views.cards import bp_cards
 
 uvloop.install()
 
-app = Flask(__name__)
+app = Quart(__name__)
 app.register_blueprint(bp_main)
 app.register_blueprint(bp_cards)
 
