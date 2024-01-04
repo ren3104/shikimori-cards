@@ -8,14 +8,16 @@ cache.setup("mem://", size=100)
 
 
 def get_aiohttp_session() -> ClientSession:
-    if "aiohttp_session" not in g:
-        g.aiohttp_session = ClientSession()
-
-    return g.aiohttp_session
+    try:
+        return g.aiohttp_session
+    except AttributeError:
+        s = g.aiohttp_session = ClientSession(trust_env=True)
+        return s
 
 
 async def get_shikimori_session() -> ShikimoriAPI:
-    if "shikimori_session" not in g:
-        g.shikimori_session = await ShikimoriAPI().open()
-
-    return g.shikimori_session
+    try:
+        return g.shikimori_session
+    except AttributeError:
+        s = g.shikimori_session = await ShikimoriAPI().open()
+        return s

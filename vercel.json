@@ -1,11 +1,12 @@
 {
+    "version": 2,
     "github": {
         "silent": true
     },
     "builds": [
         {
             "src": "app.py",
-            "use": "@vercel/python@3.1.60"
+            "use": "@vercel/python"
         }
     ],
     "routes": [
