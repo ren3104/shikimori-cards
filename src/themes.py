@@ -31,7 +31,7 @@ themes = {
     ),
     "edesign": CardOptions(
         bg_color="#191935e6",
-        border_color="#0000",
+        border_color="#a4ace54d",
         border_radius=12,
         title_color="#c6cbf1",
         text_color="#a4ace5",

@@ -40,10 +40,12 @@ https://shikimori-cards.vercel.app/collection/<collection_id>
 ## Готовые темы
 | | | |
 | :--: | :--: | :--: |
-| `default` ![default][default] | `shiki-theme` ![shiki-theme][shiki-theme] | [Добавь свою тему][add-theme] |
+| `default` ![default][default] | `shiki-theme` ![shiki-theme][shiki-theme] | `edesign` ![edesign][edesign] |
+|  [Добавь свою тему][add-theme] |
 
 [default]: https://shikimori-cards.vercel.app/user/555400?theme=default
 [shiki-theme]: https://shikimori-cards.vercel.app/user/555400?theme=shiki-theme
+[edesign]: https://shikimori-cards.vercel.app/user/555400?theme=edesign
 
 [add-theme]: https://github.com/ren3104/shikimori-cards/blob/master/src/themes.py
 
