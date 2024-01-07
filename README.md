@@ -50,8 +50,6 @@ https://shikimori-cards.vercel.app/collection/<collection_id>
 ## Настройка темы
 Вы можете настроить внешний вид своих карточек по своему усмотрению с помощью параметров запроса.
 
-Такие темы как `shiki-theme` используют `css` переменные для подстраивания под пользовательские настройки `css` темы сайта.
-
 ### Типы
 - `string` - строка
 - `integer` - целое число
@@ -65,15 +63,14 @@ https://shikimori-cards.vercel.app/collection/<collection_id>
 - `border_radius` - (`integer`) скругление углов карточки
 - `title_color` - (`color`) цвет заголовка
 - `text_color` - (`color`) основной цвет текста
-- `animate` - (`boolean`) плавное появление карточки
+- `icon_color` - (`color`) цвет иконок
 
 ### Параметры пользовательской карточки
-- `avatar_round` - (`boolean`) круглая аватарка
-- `show_icons` - (`boolean`) показывать иконки
-- `stat_color` - (`color`) цвет "ключа" статистики
-- `bar_back_color` - (`color`) цвет ранговой окружности
 - `bar_color` - (`color`) цвет заполнения ранговой окружности
+- `bar_back_color` - (`color`) цвет ранговой окружности
 - `bar_round` - (`boolean`) круглые концы заполнения ранговой окружности
+- `show_icons` - (`boolean`) показывать иконки
+- `animated` - (`boolean`) плавное появление карточки
 
 ### Пример
 ```
@@ -83,4 +80,4 @@ https://shikimori-cards.vercel.app/user/<user_id>?bg_color=0000&show_icons=true&
 ## Разработка
 1. Клонируйте репозиторий
 2. Установите необходимые зависимости с помощью `pip install -U -r requirements.txt`
-3. Запустите сервер с помощью `quart run` или с авто перезагрузкой `quart run --reload`
+3. Запустите сервер с помощью `flask run` или с авто перезагрузкой `flask run --reload`
