@@ -13,7 +13,7 @@ class CardOptions:
     bar_back_color: str = "#eef0f3" # цвет полоски в опросе
     bar_round: bool = False
     show_icons: bool = True
-    animated: bool = True
+    animated: bool = False
 
 
 themes = {
@@ -29,4 +29,15 @@ themes = {
         bar_back_color="#e0e0e0",
         bar_round=True
     ),
+    "edesign": CardOptions(
+        bg_color="#191935e6",
+        border_color="#0000",
+        border_radius=12,
+        title_color="#c6cbf1",
+        text_color="#a4ace5",
+        icon_color="#7685f5",
+        bar_color="#424b8f",
+        bar_back_color="#1b1b3ecc",
+        bar_round=True
+    )
 }
