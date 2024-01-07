@@ -1,0 +1,28 @@
+{% macro group(x=0, y=0, animation='', animation_delay=0) %}
+    <g transform="translate({{ x }}, {{ y }})" {% if options.animated or theme.animated %}{% if animation %}class="{{ animation }}"{% endif %} {% if animation_delay %}style="animation-delay: {{ animation_delay }}ms"{% endif %}{% endif %}>
+        {{ caller() }}
+    </g>
+{% endmacro %}
+<svg width="{{ width }}" height="{{ height }}" viewBox="0 0 {{ width }} {{ height }}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+{% if title %}
+    <title>{{ title }}</title>
+{% endif %}
+{% if description %}
+    <desc>{{ description }}</desc>
+{% endif %}
+<style>
+{% block style %}
+text {
+    font-family: 'Segoe UI', Ubuntu, Sans-Serif;
+    font-size: 16px;
+    fill: {{ options.text_color or theme.text_color }};
+}
+.background {
+    fill: {{ options.bg_color or theme.bg_color }};
+    stroke: {{ options.border_color or theme.border_color }};
+}
+{% endblock %}
+</style>
+<rect width="100%" height="100%" class="background" rx="{{ options.border_radius or theme.border_radius }}" />
+{% block content %}{% endblock %}
+</svg>

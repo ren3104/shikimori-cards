@@ -1,0 +1,78 @@
+{% extends 'base.svg' %}
+{% block style %}
+    {{ super() }}
+    .title {
+        font-size: 20px;
+        fill: {{ options.title_color or theme.title_color }};
+    }
+    {% if options.show_icons or theme.show_icons %}
+        .icon {
+            fill: {{ options.icon_color or theme.icon_color }};
+        }
+    {% endif %}
+    .rank-ring {
+        stroke: {{ options.bar_color or theme.bar_color }};
+        stroke-dasharray: 314;
+        stroke-width: 6;
+        stroke-linecap: {{ "round" if options.bar_round or theme.bar_round else "butt" }};
+        {% if options.animated or theme.animated %}
+            animation: rankRingAnimation 1s forwards ease-in-out;
+        {% else %}
+            stroke-dashoffset: {{ calculateRingProgress(100 - score) }};
+        {% endif %}
+        fill: none;
+        transform: rotate(-90deg);
+    }
+    .rank-ring-back {
+        stroke: {{ options.bar_back_color or theme.bar_back_color }};
+        fill: none;
+        stroke-width: 6;
+    }
+    .rank {
+        font-size: 32px;
+        alignment-baseline: central;
+        dominant-baseline: central;
+        text-anchor: middle;
+    }
+    .rank-score {
+        font-size: 12px;
+        text-anchor: middle;
+    }
+    {% if options.animated or theme.animated %}
+        .stagger {
+            opacity: 0;
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from {opacity: 0}
+            to {opacity: 1}
+        }
+        @keyframes rankRingAnimation {
+            from {stroke-dashoffset: {{ calculateRingProgress(0) }}}
+            to {stroke-dashoffset: {{ calculateRingProgress(100 - score) }}}
+        }
+    {% endif %}
+{% endblock %}
+{% block content %}
+    {% call group(20, 40, 'stagger', 150) %}
+        <text class="title">Shikimori статистика {{ nickname }}</text>
+    {% endcall %}
+    {% for stat in stats %}
+        {% call group(20, 50 + loop.index * 26, 'stagger', 150 + loop.index * 150) %}
+            {% if options.show_icons or theme.show_icons %}
+                <svg y="-15" width="20" height="20" viewBox="0 0 20 20" class="icon"><path d="{{ stat.icon }}"/></svg>
+                <text x="30">{{ stat.label }}:</text>
+                <text x="270">{{ stat.value }}</text>
+            {% else %}
+                <text>{{ stat.label }}:</text>
+                <text x="250">{{ stat.value }}</text>
+            {% endif %}
+        {% endcall %}
+    {% endfor %}
+    {% call group(407, 127) %}
+        <circle class="rank-ring-back" r="50"/>
+        <circle class="rank-ring" r="50"/>
+        <text class="rank">{{ rank }}</text>
+        <text y="72" class="rank-score">Топ {{ score }}%</text>
+    {% endcall %}
+{% endblock %}

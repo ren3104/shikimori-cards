@@ -1,4 +1,4 @@
-from quart import Blueprint, redirect
+from flask import Blueprint, redirect
 
 
 bp_main = Blueprint("main", __name__)

@@ -21,8 +21,7 @@ class CollectionCard:
 async def fetch_collection_card(collection_id: int) -> CollectionCard:
     async with get_aiohttp_session().request(
         method="GET",
-        url=f"https://shikimori.me/collections/{collection_id}",
-        raise_for_status=True
+        url=f"https://shikimori.one/collections/{collection_id}"
     ) as response:
 
         html_tree = HTMLParser(await response.text())

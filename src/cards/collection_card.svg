@@ -1,0 +1,30 @@
+{% extends 'base.svg' %}
+{% block style %}
+    {{ super() }}
+    .title {
+        font-size: 20px;
+        fill: {{ options.title_color or theme.title_color }};
+    }
+    .icon {
+        fill: {{ options.icon_color or theme.icon_color }};
+    }
+{% endblock %}
+{% block content %}
+    {% call group(20, 36) %}
+        <circle cx="8" cy="-5.5" r="8" fill="{{ status_color }}" />
+        <text x="21">{{ status }}</text>
+    {% endcall %}
+    <text class="title" x="20" y="46">
+        {% for line in collection_name %}
+        <tspan dy="1.2em" x="20">{{ line }}</tspan>
+        {% endfor %}
+    </text>
+    {% call group(20, height - 24) %}
+        {% for stat in stats %}
+            {% call group(stat.x, 0) %}
+                <svg y="-15" width="20" height="20" viewBox="0 0 20 20" class="icon"><path d="{{ stat.icon }}"/></svg>
+                <text x="25">{{ stat.value }}</text>
+            {% endcall %}
+        {% endfor %}
+    {% endcall %}
+{% endblock %}
