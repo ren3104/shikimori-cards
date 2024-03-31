@@ -1,4 +1,3 @@
-from cashews import cache
 from selectolax.parser import HTMLParser
 
 from dataclasses import dataclass
@@ -17,7 +16,6 @@ class CollectionCard:
     changed_at: Optional[str]
 
 
-@cache(ttl="4h", prefix="collection_card", key="{collection_id}")
 async def fetch_collection_card(collection_id: int) -> CollectionCard:
     async with get_aiohttp_session().request(
         method="GET",

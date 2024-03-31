@@ -1,4 +1,3 @@
-from cashews import cache
 from shikithon.utils import Utils
 from selectolax.parser import HTMLParser
 
@@ -90,7 +89,6 @@ def get_score_count(scores: Dict[str, Any]) -> int:
     return s
 
 
-@cache(ttl="4h", prefix="user_card", key="{user_id}")
 async def fetch_user_card(user_id: Union[str, int]) -> UserCard:
     if isinstance(user_id, str):
         api_user, html_user = await asyncio.gather(
