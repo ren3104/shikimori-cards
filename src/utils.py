@@ -1,7 +1,8 @@
-from flask import g
+from flask import g, send_file, Response
 from jinja2 import Environment, FileSystemLoader
 from hyphen import Hyphenator
 
+from io import BytesIO
 import math
 from textwrap import shorten
 from re import search
@@ -55,6 +56,27 @@ def get_jinja_env() -> Environment:
             auto_reload=False
         )
         return env
+
+
+def send_svg_file(
+    svg_text: str,
+    file_name: str,
+    cache_seconds: int = 3600,
+    swr_seconds: int = 43200
+) -> Response:
+    svg_bytes = BytesIO(svg_text.encode("utf-8"))
+    svg_bytes.seek(0)
+
+    resp = send_file(
+        svg_bytes,
+        mimetype="image/svg+xml",
+        as_attachment=False,
+        download_name=file_name
+    )
+
+    resp.headers["Cache-Control"] = f"max-age={cache_seconds // 2}, s-maxage={cache_seconds}, stale-while-revalidate={swr_seconds}"
+
+    return resp
 
 
 def calculate_ring_progress(value: int, radius: int = 50) -> int:

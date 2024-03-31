@@ -1,14 +1,14 @@
-from flask import Blueprint, request, abort, send_file
+from flask import Blueprint, request, abort
 from aiohttp import ClientResponseError
 from shikithon.exceptions import ShikimoriAPIResponseError
 
-from io import BytesIO
 from datetime import datetime, timedelta
 
 from src.fetchers.user_fetcher import fetch_user_card
 from src.fetchers.collection_fetcher import fetch_collection_card
 from src.utils import (
     get_jinja_env,
+    send_svg_file,
     calculate_ring_progress,
     k_formatter,
     measure_text,
@@ -30,9 +30,9 @@ async def user_card(user_id: str):
         user_id = int(user_id)
     except ValueError:
         pass
-
-    if isinstance(user_id, int) and user_id <= 0:
-        abort(404)
+    else:
+        if user_id <= 0:
+            abort(404)
     
     try:
         card = await fetch_user_card(user_id)
@@ -77,20 +77,10 @@ async def user_card(user_id: str):
         theme=themes.get(request.args.get("theme", "default"), themes["default"])
     )
 
-    svg_bytes = BytesIO(svg_text.encode("utf-8"))
-    svg_bytes.seek(0)
-
-    resp = send_file(
-        svg_bytes,
-        mimetype="image/svg+xml",
-        as_attachment=False,
-        download_name=f"user_card_{user_id}.svg"
+    return send_svg_file(
+        svg_text=svg_text,
+        file_name=f"user_card_{user_id}.svg"
     )
-
-    cache_seconds = 14400
-    resp.headers["Cache-Control"] = f"max-age={cache_seconds}, s-maxage={cache_seconds}"
-
-    return resp
 
 
 @bp_cards.route("/collection/<int:collection_id>")
@@ -153,17 +143,7 @@ async def collection_card(collection_id: int):
         theme=themes.get(request.args.get("theme", "default"), themes["default"])
     )
 
-    svg_bytes = BytesIO(svg_text.encode("utf-8"))
-    svg_bytes.seek(0)
-
-    resp = send_file(
-        svg_bytes,
-        mimetype="image/svg+xml",
-        as_attachment=False,
-        download_name=f"collection_card_{collection_id}.svg"
+    return send_svg_file(
+        svg_text=svg_text,
+        file_name=f"collection_card_{collection_id}.svg"
     )
-
-    cache_seconds = 14400
-    resp.headers["Cache-Control"] = f"max-age={cache_seconds}, s-maxage={cache_seconds}"
-
-    return resp
