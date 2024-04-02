@@ -76,7 +76,7 @@ https://shikimori-cards.vercel.app/collection/<collection_id>
 
 ### Пример
 ```
-https://shikimori-cards.vercel.app/user/<user_id>?bg_color=0000&show_icons=true&animate=1
+https://shikimori-cards.vercel.app/user/<user_id>?bg_color=0000&show_icons=true&animated=1
 ```
 
 ## Разработка

@@ -85,6 +85,8 @@ async def user_card(user_id: str):
 
 @bp_cards.route("/collection/<int:collection_id>")
 async def collection_card(collection_id: int):
+    if collection_id <= 0:
+        abort(404)
     try:
         card = await fetch_collection_card(collection_id)
     except ClientResponseError:

@@ -6,6 +6,7 @@ from io import BytesIO
 import math
 from textwrap import shorten
 from re import search
+import time
 from typing import Optional, List
 
 
@@ -71,7 +72,8 @@ def send_svg_file(
         svg_bytes,
         mimetype="image/svg+xml",
         as_attachment=False,
-        download_name=file_name
+        download_name=file_name,
+        last_modified=int(time.time())
     )
 
     resp.headers["Cache-Control"] = f"max-age={cache_seconds // 2}, s-maxage={cache_seconds}, stale-while-revalidate={swr_seconds}"
