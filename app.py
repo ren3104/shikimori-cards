@@ -1,29 +1,43 @@
-import uvloop
-from flask import Flask, g
+from starlette.applications import Starlette
+from starlette.routing import Route
 from aiohttp import ClientSession
 from shikithon import ShikimoriAPI
+from jinja2 import Environment, FileSystemLoader
 
-from typing import cast, Optional
+from contextlib import asynccontextmanager
+from typing import AsyncIterator, TypedDict
 
-from views.main import bp_main
-from views.cards import bp_cards
-
-
-uvloop.install()
-
-app = Flask(__name__)
-app.register_blueprint(bp_main)
-app.register_blueprint(bp_cards)
+from views.main import index
+from views.cards import user_card, collection_card
 
 
-@app.teardown_appcontext
-async def teardown_web_sessions(_: Optional[Exception]) -> None:
-    try:
-        await cast(ClientSession, g.aiohttp_session).close()
-    except AttributeError:
-        pass
+class State(TypedDict):
+    client: ClientSession
+    api: ShikimoriAPI
+    jinja_env: Environment
 
-    try:
-        await cast(ShikimoriAPI, g.shikimori_session).close()
-    except AttributeError:
-        pass
+
+@asynccontextmanager
+async def lifespan(_: Starlette) -> AsyncIterator[State]:
+    client = ClientSession(trust_env=True)
+    api = ShikimoriAPI()
+    async with client, api:
+        yield {
+            "client": client,
+            "api": api,
+            "jinja_env": Environment(
+                trim_blocks=True,
+                loader=FileSystemLoader("src/cards/"),
+                auto_reload=False
+            )
+        }
+
+
+app = Starlette(
+    routes=[
+        Route("/", index),
+        Route("/user/{user_id:str}", user_card),
+        Route("/collection/{collection_id:int}", collection_card)
+    ],
+    lifespan=lifespan
+)

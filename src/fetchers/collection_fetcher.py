@@ -1,9 +1,8 @@
+from aiohttp import ClientSession
 from selectolax.parser import HTMLParser
 
 from dataclasses import dataclass
 from typing import Optional
-
-from . import get_aiohttp_session
 
 
 @dataclass(frozen=True)
@@ -16,8 +15,11 @@ class CollectionCard:
     changed_at: Optional[str]
 
 
-async def fetch_collection_card(collection_id: int) -> CollectionCard:
-    async with get_aiohttp_session().request(
+async def fetch_collection_card(
+    client: ClientSession,
+    collection_id: int
+) -> CollectionCard:
+    async with client.request(
         method="GET",
         url=f"https://shikimori.one/collections/{collection_id}"
     ) as response:

@@ -1,12 +1,10 @@
-from flask import g, send_file, Response
-from jinja2 import Environment, FileSystemLoader
+from starlette.responses import Response
 from hyphen import Hyphenator
 
-from io import BytesIO
 import math
 from textwrap import shorten
 from re import search
-import time
+from email.utils import formatdate
 from typing import Optional, List
 
 
@@ -47,38 +45,21 @@ KERN_MODS = {
 }
 
 
-def get_jinja_env() -> Environment:
-    try:
-        return g.jinja_env
-    except AttributeError:
-        env = g.jinja_env = Environment(
-            trim_blocks=True,
-            loader=FileSystemLoader("src/cards/"),
-            auto_reload=False
-        )
-        return env
-
-
 def send_svg_file(
     svg_text: str,
     file_name: str,
     cache_seconds: int = 3600,
     swr_seconds: int = 43200
 ) -> Response:
-    svg_bytes = BytesIO(svg_text.encode("utf-8"))
-    svg_bytes.seek(0)
-
-    resp = send_file(
-        svg_bytes,
-        mimetype="image/svg+xml",
-        as_attachment=False,
-        download_name=file_name,
-        last_modified=int(time.time())
+    return Response(
+        content=svg_text,
+        headers={
+            "Content-Disposition": f"inline; filename={file_name}",
+            "Last-Modified": formatdate(usegmt=True), # current time gmt
+            "Cache-Control": f"max-age={cache_seconds // 2}, s-maxage={cache_seconds}, stale-while-revalidate={swr_seconds}"
+        },
+        media_type="image/svg+xml"
     )
-
-    resp.headers["Cache-Control"] = f"max-age={cache_seconds // 2}, s-maxage={cache_seconds}, stale-while-revalidate={swr_seconds}"
-
-    return resp
 
 
 def calculate_ring_progress(value: int, radius: int = 50) -> int:

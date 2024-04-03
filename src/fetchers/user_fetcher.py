@@ -1,11 +1,11 @@
+from aiohttp import ClientSession
+from shikithon import ShikimoriAPI
 from shikithon.utils import Utils
 from selectolax.parser import HTMLParser
 
 import asyncio
 from dataclasses import dataclass
 from typing import Any, Union, Dict, Tuple
-
-from . import get_aiohttp_session, get_shikimori_session
 
 
 ANIME_MANGA_MEAN = 125
@@ -89,15 +89,19 @@ def get_score_count(scores: Dict[str, Any]) -> int:
     return s
 
 
-async def fetch_user_card(user_id: Union[str, int]) -> UserCard:
+async def fetch_user_card(
+    client: ClientSession,
+    api: ShikimoriAPI,
+    user_id: Union[str, int]
+) -> UserCard:
     if isinstance(user_id, str):
         api_user, html_user = await asyncio.gather(
-            fetch_api_user(user_id),
-            fetch_html_user(user_id)
+            fetch_api_user(api, user_id),
+            fetch_html_user(client, user_id)
         )
     else:
-        api_user = await fetch_api_user(user_id)
-        html_user = await fetch_html_user(api_user["nickname"])
+        api_user = await fetch_api_user(api, user_id)
+        html_user = await fetch_html_user(client, api_user["nickname"])
 
     user_info = UserInfo(
         id=api_user["id"],
@@ -124,22 +128,26 @@ async def fetch_user_card(user_id: Union[str, int]) -> UserCard:
     return UserCard(user_info, rank, score)
 
 
-async def fetch_api_user(user_id: Union[str, int]) -> Dict[str, Any]:
-    shikimori_api = await get_shikimori_session()
-
+async def fetch_api_user(
+    api: ShikimoriAPI,
+    user_id: Union[str, int]
+) -> Dict[str, Any]:
     is_nickname = True if isinstance(user_id, str) else None
     query_dict = Utils.create_query_dict(is_nickname=is_nickname)
     
-    return await shikimori_api.request(
-        url=shikimori_api.endpoints.user(user_id),
+    return await api.request(
+        url=api.endpoints.user(user_id),
         query=query_dict
     )
 
 
-async def fetch_html_user(user_name: str) -> Dict[str, Any]:
+async def fetch_html_user(
+    client: ClientSession,
+    user_name: str
+) -> Dict[str, Any]:
     result = {}
 
-    async with get_aiohttp_session().request(
+    async with client.request(
         method="GET",
         url="https://shikimori.one/" + user_name
     ) as response:

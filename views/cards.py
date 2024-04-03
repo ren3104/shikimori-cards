@@ -1,13 +1,15 @@
-from flask import Blueprint, request, abort
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.exceptions import HTTPException
 from aiohttp import ClientResponseError
 from shikithon.exceptions import ShikimoriAPIResponseError
+from jinja2 import Environment
 
 from datetime import datetime, timedelta
 
 from src.fetchers.user_fetcher import fetch_user_card
 from src.fetchers.collection_fetcher import fetch_collection_card
 from src.utils import (
-    get_jinja_env,
     send_svg_file,
     calculate_ring_progress,
     k_formatter,
@@ -21,23 +23,24 @@ from src.themes import themes
 from src.icons import icons
 
 
-bp_cards = Blueprint("cards", __name__)
-
-
-@bp_cards.route("/user/<string:user_id>")
-async def user_card(user_id: str):
+async def user_card(request: Request) -> Response:
+    user_id: str = request.path_params["user_id"]
     try:
         user_id = int(user_id)
     except ValueError:
         pass
     else:
         if user_id <= 0:
-            abort(404)
+            raise HTTPException(404)
     
     try:
-        card = await fetch_user_card(user_id)
+        card = await fetch_user_card(
+            client=request.state.client,
+            api=request.state.api,
+            user_id=user_id
+        )
     except ShikimoriAPIResponseError:
-        abort(404)
+        raise HTTPException(404)
 
     card_icons = icons["shikimori"]
     stats = [
@@ -48,7 +51,8 @@ async def user_card(user_id: str):
         {"icon": card_icons.edit, "label": "Сделано правок", "value": k_formatter(card.info.edits_count)},
         {"icon": card_icons.comment, "label": "Написано комментариев", "value": k_formatter(card.info.comments_count)}
     ]
-    tmpl = get_jinja_env().get_template(
+    jinja_env: Environment = request.state.jinja_env
+    tmpl = jinja_env.get_template(
         name="user_card.svg",
         globals={"calculateRingProgress": calculate_ring_progress}
     )
@@ -62,19 +66,19 @@ async def user_card(user_id: str):
         score=card.score,
         stats=stats,
         options={
-            "bg_color": parse_hex_color(request.args.get("bg_color", "")),
-            "border_color": parse_hex_color(request.args.get("border_color", "")),
-            "border_radius": parse_integer(request.args.get("border_radius", "")),
-            "title_color": parse_hex_color(request.args.get("title_color", "")),
-            "text_color": parse_hex_color(request.args.get("text_color", "")),
-            "icon_color": parse_hex_color(request.args.get("icon_color", "")),
-            "bar_color": parse_hex_color(request.args.get("bar_color", "")),
-            "bar_back_color": parse_hex_color(request.args.get("bar_back_color", "")),
-            "bar_round": parse_boolean(request.args.get("bar_round", "")),
-            "show_icons": parse_boolean(request.args.get("show_icons", "")),
-            "animated": parse_boolean(request.args.get("animated", ""))
+            "bg_color": parse_hex_color(request.query_params.get("bg_color", "")),
+            "border_color": parse_hex_color(request.query_params.get("border_color", "")),
+            "border_radius": parse_integer(request.query_params.get("border_radius", "")),
+            "title_color": parse_hex_color(request.query_params.get("title_color", "")),
+            "text_color": parse_hex_color(request.query_params.get("text_color", "")),
+            "icon_color": parse_hex_color(request.query_params.get("icon_color", "")),
+            "bar_color": parse_hex_color(request.query_params.get("bar_color", "")),
+            "bar_back_color": parse_hex_color(request.query_params.get("bar_back_color", "")),
+            "bar_round": parse_boolean(request.query_params.get("bar_round", "")),
+            "show_icons": parse_boolean(request.query_params.get("show_icons", "")),
+            "animated": parse_boolean(request.query_params.get("animated", ""))
         },
-        theme=themes.get(request.args.get("theme", "default"), themes["default"])
+        theme=themes.get(request.query_params.get("theme", "default"), themes["default"])
     )
 
     return send_svg_file(
@@ -83,14 +87,17 @@ async def user_card(user_id: str):
     )
 
 
-@bp_cards.route("/collection/<int:collection_id>")
-async def collection_card(collection_id: int):
+async def collection_card(request: Request) -> Response:
+    collection_id: int = request.path_params["collection_id"]
     if collection_id <= 0:
-        abort(404)
+        raise HTTPException(404)
     try:
-        card = await fetch_collection_card(collection_id)
+        card = await fetch_collection_card(
+            client=request.state.client,
+            collection_id=collection_id
+        )
     except ClientResponseError:
-        abort(404)
+        raise HTTPException(404)
 
     status = "Пополняется"
     status_color = "#44bbff"
@@ -126,7 +133,8 @@ async def collection_card(collection_id: int):
         font_size=20
     )
     height = 102 + len(collection_name) * 20 * 1.2
-    tmpl = get_jinja_env().get_template("collection_card.svg")
+    jinja_env: Environment = request.state.jinja_env
+    tmpl = jinja_env.get_template("collection_card.svg")
     svg_text = tmpl.render(
         height=height,
         width=400,
@@ -135,14 +143,14 @@ async def collection_card(collection_id: int):
         collection_name=collection_name,
         stats=stats,
         options={
-            "bg_color": parse_hex_color(request.args.get("bg_color", "")),
-            "border_color": parse_hex_color(request.args.get("border_color", "")),
-            "border_radius": parse_integer(request.args.get("border_radius", "")),
-            "title_color": parse_hex_color(request.args.get("title_color", "")),
-            "text_color": parse_hex_color(request.args.get("text_color", "")),
-            "icon_color": parse_hex_color(request.args.get("icon_color", ""))
+            "bg_color": parse_hex_color(request.query_params.get("bg_color", "")),
+            "border_color": parse_hex_color(request.query_params.get("border_color", "")),
+            "border_radius": parse_integer(request.query_params.get("border_radius", "")),
+            "title_color": parse_hex_color(request.query_params.get("title_color", "")),
+            "text_color": parse_hex_color(request.query_params.get("text_color", "")),
+            "icon_color": parse_hex_color(request.query_params.get("icon_color", ""))
         },
-        theme=themes.get(request.args.get("theme", "default"), themes["default"])
+        theme=themes.get(request.query_params.get("theme", "default"), themes["default"])
     )
 
     return send_svg_file(

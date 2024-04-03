@@ -1,9 +1,6 @@
-from flask import Blueprint, redirect
+from starlette.requests import Request
+from starlette.responses import Response, RedirectResponse
 
 
-bp_main = Blueprint("main", __name__)
-
-
-@bp_main.route("/")
-def index():
-    return redirect("https://github.com/ren3104/shikimori-cards")
+async def index(_: Request) -> Response:
+    return RedirectResponse("https://github.com/ren3104/shikimori-cards")
