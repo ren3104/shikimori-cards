@@ -1,9 +1,11 @@
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.exceptions import HTTPException
+from aiohttp import ClientSession
 from aiohttp import ClientResponseError
+from shikithon import ShikimoriAPI
 from shikithon.exceptions import ShikimoriAPIResponseError
-from jinja2 import Environment
+from jinja2 import Environment, FileSystemLoader
 
 from datetime import datetime, timedelta
 
@@ -35,8 +37,8 @@ async def user_card(request: Request) -> Response:
     
     try:
         card = await fetch_user_card(
-            client=request.state.client,
-            api=request.state.api,
+            client=ClientSession(trust_env=True),
+            api=ShikimoriAPI(),
             user_id=user_id
         )
     except ShikimoriAPIResponseError:
@@ -51,7 +53,11 @@ async def user_card(request: Request) -> Response:
         {"icon": card_icons.edit, "label": "Сделано правок", "value": k_formatter(card.info.edits_count)},
         {"icon": card_icons.comment, "label": "Написано комментариев", "value": k_formatter(card.info.comments_count)}
     ]
-    jinja_env: Environment = request.state.jinja_env
+    jinja_env = Environment(
+        trim_blocks=True,
+        loader=FileSystemLoader("src/cards/"),
+        auto_reload=False
+    )
     tmpl = jinja_env.get_template(
         name="user_card.svg",
         globals={"calculateRingProgress": calculate_ring_progress}
@@ -93,7 +99,7 @@ async def collection_card(request: Request) -> Response:
         raise HTTPException(404)
     try:
         card = await fetch_collection_card(
-            client=request.state.client,
+            client=ClientSession(trust_env=True),
             collection_id=collection_id
         )
     except ClientResponseError:
@@ -133,7 +139,11 @@ async def collection_card(request: Request) -> Response:
         font_size=20
     )
     height = 102 + len(collection_name) * 20 * 1.2
-    jinja_env: Environment = request.state.jinja_env
+    jinja_env = Environment(
+        trim_blocks=True,
+        loader=FileSystemLoader("src/cards/"),
+        auto_reload=False
+    )
     tmpl = jinja_env.get_template("collection_card.svg")
     svg_text = tmpl.render(
         height=height,
