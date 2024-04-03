@@ -94,38 +94,39 @@ async def fetch_user_card(
     api: ShikimoriAPI,
     user_id: Union[str, int]
 ) -> UserCard:
-    if isinstance(user_id, str):
-        api_user, html_user = await asyncio.gather(
-            fetch_api_user(api, user_id),
-            fetch_html_user(client, user_id)
+    async with client, api:
+        if isinstance(user_id, str):
+            api_user, html_user = await asyncio.gather(
+                fetch_api_user(api, user_id),
+                fetch_html_user(client, user_id)
+            )
+        else:
+            api_user = await fetch_api_user(api, user_id)
+            html_user = await fetch_html_user(client, api_user["nickname"])
+
+        user_info = UserInfo(
+            id=api_user["id"],
+            nickname=api_user["nickname"],
+            anime_count=api_user["stats"]["statuses"]["anime"][2]["size"],
+            manga_count=api_user["stats"]["statuses"]["manga"][2]["size"],
+            scores_count=get_score_count(api_user["stats"]["scores"]),
+            content_count=sum([
+                html_user.get("critiques", 0),
+                html_user.get("reviews", 0),
+                html_user.get("collections", 0),
+                html_user.get("articles", 0)
+            ]),
+            edits_count=sum([
+                html_user.get("versions", 0),
+                html_user.get("video_uploads", 0),
+                html_user.get("video_changes", 0)
+            ]),
+            comments_count=html_user.get("comments", 0)
         )
-    else:
-        api_user = await fetch_api_user(api, user_id)
-        html_user = await fetch_html_user(client, api_user["nickname"])
 
-    user_info = UserInfo(
-        id=api_user["id"],
-        nickname=api_user["nickname"],
-        anime_count=api_user["stats"]["statuses"]["anime"][2]["size"],
-        manga_count=api_user["stats"]["statuses"]["manga"][2]["size"],
-        scores_count=get_score_count(api_user["stats"]["scores"]),
-        content_count=sum([
-            html_user.get("critiques", 0),
-            html_user.get("reviews", 0),
-            html_user.get("collections", 0),
-            html_user.get("articles", 0)
-        ]),
-        edits_count=sum([
-            html_user.get("versions", 0),
-            html_user.get("video_uploads", 0),
-            html_user.get("video_changes", 0)
-        ]),
-        comments_count=html_user.get("comments", 0)
-    )
+        rank, score = calculate_rank(user_info)
 
-    rank, score = calculate_rank(user_info)
-
-    return UserCard(user_info, rank, score)
+        return UserCard(user_info, rank, score)
 
 
 async def fetch_api_user(
