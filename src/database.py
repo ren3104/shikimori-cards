@@ -56,7 +56,7 @@ class BingoCard(Base):
     __tablename__ = "bingo_cards"
 
     user_id = Column(Integer, primary_key=True)
-    # season_date = Column(Date, nullable=False)
+    season_date = Column(Date)
     last_history_id = Column(Integer)
     stats = Column(JSON, nullable=False)
 
