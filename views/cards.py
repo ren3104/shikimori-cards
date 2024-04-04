@@ -8,9 +8,18 @@ from shikithon.exceptions import ShikimoriAPIResponseError
 from jinja2 import Environment, FileSystemLoader
 
 from datetime import datetime, timedelta
+from typing import get_args
 
 from src.fetchers.user_fetcher import fetch_user_card
 from src.fetchers.collection_fetcher import fetch_collection_card
+from src.database import get_db_session, BingoCard
+from src.bingo.__main__ import (
+    generate_bingo_card,
+    db_get_bingo_card,
+    count_completed_tasks
+)
+from src.bingo.checks import BINGO_TASKS, get_product_type
+from src.bingo.type_hints import ProductType
 from src.utils import (
     send_svg_file,
     calculate_ring_progress,
@@ -84,7 +93,7 @@ async def user_card(request: Request) -> Response:
             "show_icons": parse_boolean(request.query_params.get("show_icons", "")),
             "animated": parse_boolean(request.query_params.get("animated", ""))
         },
-        theme=themes.get(request.query_params.get("theme", "default"), themes["default"])
+        theme=themes.get(request.query_params.get("theme", "default"))
     )
 
     return send_svg_file(
@@ -160,10 +169,118 @@ async def collection_card(request: Request) -> Response:
             "text_color": parse_hex_color(request.query_params.get("text_color", "")),
             "icon_color": parse_hex_color(request.query_params.get("icon_color", ""))
         },
-        theme=themes.get(request.query_params.get("theme", "default"), themes["default"])
+        theme=themes.get(request.query_params.get("theme", "default"))
     )
 
     return send_svg_file(
         svg_text=svg_text,
         file_name=f"collection_card_{collection_id}.svg"
+    )
+
+
+async def bingo_card(request: Request) -> Response:
+    user_id: int = request.path_params["user_id"]
+    if user_id <= 0:
+        raise HTTPException(404)
+
+    product_types = request.query_params.get("types", "").split(",")
+    if len(product_types) == 0 or any([t not in get_args(ProductType) for t in product_types]):
+        raise HTTPException(400)
+
+    async with get_db_session() as db:
+        bingo_card = await db_get_bingo_card(db, user_id)
+        api = ShikimoriAPI()
+        async with api:
+            if bingo_card is None:
+                history = await api.users.history(
+                    user_id=user_id,
+                    page=1,
+                    limit=1
+                )
+                if len(history) == 0:
+                    raise HTTPException(400)
+
+                bingo_card = BingoCard(
+                    user_id=user_id,
+                    last_history_id=history[0].id,
+                    stats=generate_bingo_card(16, product_types)
+                )
+
+                db.add(bingo_card)
+                await db.commit()
+            else:
+                if count_completed_tasks(bingo_card.stats) < len(bingo_card.stats):
+                    history = await api.users.history(
+                        user_id=user_id,
+                        page=1,
+                        limit=100
+                    )
+                    if len(history) != 0:
+                        # [! Change this code only if you have checked it thoroughly
+                        bingo_stats: dict = bingo_card.stats.copy()
+                        for h in history:
+                            if h.id == bingo_card.last_history_id:
+                                break
+                            for k, v in bingo_stats.items():
+                                if v is not None:
+                                    continue
+                                task_check = BINGO_TASKS[int(k) - 1]
+                                if not await task_check.check(api, h):
+                                    continue
+                                bingo_stats[k] = f"{get_product_type(h.target)}-{h.target.id}"
+                        bingo_card.stats = bingo_stats
+                        # !]
+                        bingo_card.last_history_id = history[0].id
+                        await db.commit()
+                else:
+                    bingo_card.stats = generate_bingo_card(16, product_types)
+                    await db.commit()
+
+        jinja_env = Environment(
+            trim_blocks=True,
+            loader=FileSystemLoader("src/cards/"),
+            auto_reload=False
+        )
+        tmpl = jinja_env.get_template("bingo_card.svg")
+        svg_text = tmpl.render(
+            height=1000,
+            width=700,
+            cell_per_row=4,
+            cell_height=200,
+            cell_width=150,
+            cell_gap=20,
+            bingo_stats=bingo_card.stats,
+            image_urls = {
+                stat: "https://shikimori.one/" + (
+                    "system/animes/preview/{}.jpg"
+                    if stat.startswith("anime") else
+                    "system/mangas/preview/{}.jpg"
+                ).format(stat.split("-")[1])
+                for n, stat in bingo_card.stats.items()
+                if stat is not None
+            },
+            stats_descr={
+                n: wrap_text_multiline(
+                    text=BINGO_TASKS[int(n) - 1].description,
+                    width=150,
+                    font_size=20,
+                    max_lines=7
+                )
+                for n in bingo_card.stats.keys()
+            },
+            options={
+                "bg_color": parse_hex_color(request.query_params.get("bg_color", "")),
+                "border_color": parse_hex_color(request.query_params.get("border_color", "")),
+                "border_radius": parse_integer(request.query_params.get("border_radius", "")),
+                "title_color": parse_hex_color(request.query_params.get("title_color", "")),
+                "text_color": parse_hex_color(request.query_params.get("text_color", ""))
+            },
+            theme=themes.get(request.query_params.get("theme", "default"))
+        )
+
+        db.expire(bingo_card)
+
+    return send_svg_file(
+        svg_text=svg_text,
+        file_name=f"bingo_card_{user_id}.svg"
     )

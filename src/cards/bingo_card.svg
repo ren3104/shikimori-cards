@@ -1,0 +1,40 @@
+{% extends 'base.svg' %}
+{% block style %}
+    {{ super() }}
+    .title {
+        font-size: 60px;
+        font-weight: 700;
+        fill: {{ options.title_color or theme.title_color }};
+        text-anchor: middle;
+        dominant-baseline: hanging;
+    }
+    .cell_descr {
+        font-size: 20px;
+        text-anchor: middle;
+    }
+{% endblock %}
+{% block content %}
+    <defs>
+        {% for stat, url in image_urls.items() %}
+            <image id="p-{{ stat }}" href="{{ url }}" preserveAspectRatio="xMidYMax meet" height="{{ cell_height }}" width="{{ cell_width }}" />
+        {% endfor %}
+    </defs>
+    <text class="title" x="50%" y="40">SHIKIMORI БИНГО</text>
+    {% call group(20, 120) %}
+        {% for n, stat in bingo_stats.items() %}
+            {% set column_no = loop.index0 % cell_per_row %}
+            {% set row_no = loop.index0 // cell_per_row %}
+            {% set x = column_no * (cell_width + cell_gap) %}
+            {% set y = row_no * (cell_height + cell_gap) %}
+            {% if stat is string %}
+                <use href="#p-{{ stat }}" x="{{ x }}" y="{{ y }}" />
+            {% else %}
+                <text class="cell_descr" x="{{ x + cell_width // 2 }}" y="{{ y }}">
+                {% for line in stats_descr[n] %}
+                    <tspan x="{{ x + cell_width // 2 }}" dy="1.2em">{{ line }}</tspan>
+                {% endfor %}
+                </text>
+            {% endif %}
+        {% endfor %}
+    {% endcall %}
+{% endblock %}

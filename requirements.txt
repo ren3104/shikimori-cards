@@ -6,3 +6,8 @@ aiohttp[speedups]==3.9.3
 selectolax==0.3.21
 shikithon==2.6.2
 PyHyphen==4.0.3
+sqlalchemy[asyncio]==2.0.29
+asyncpg
+alembic==1.13.1
+cashews[speedup]==7.0.2
+numpy==1.26.4
