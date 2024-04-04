@@ -1,11 +1,11 @@
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.exceptions import HTTPException
-from aiohttp import ClientSession
 from aiohttp import ClientResponseError
 from shikithon import ShikimoriAPI
 from shikithon.exceptions import ShikimoriAPIResponseError
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment
+from starlette_context import context
 
 from datetime import datetime, timedelta
 from typing import get_args
@@ -46,8 +46,8 @@ async def user_card(request: Request) -> Response:
     
     try:
         card = await fetch_user_card(
-            client=ClientSession(trust_env=True),
-            api=ShikimoriAPI(),
+            client=context["aiohttp"],
+            api=context["shikimori"],
             user_id=user_id
         )
     except ShikimoriAPIResponseError:
@@ -62,11 +62,7 @@ async def user_card(request: Request) -> Response:
         {"icon": card_icons.edit, "label": "Сделано правок", "value": k_formatter(card.info.edits_count)},
         {"icon": card_icons.comment, "label": "Написано комментариев", "value": k_formatter(card.info.comments_count)}
     ]
-    jinja_env = Environment(
-        trim_blocks=True,
-        loader=FileSystemLoader("src/cards/"),
-        auto_reload=False
-    )
+    jinja_env: Environment = context["jinja"]
     tmpl = jinja_env.get_template(
         name="user_card.svg",
         globals={"calculateRingProgress": calculate_ring_progress}
@@ -108,7 +104,7 @@ async def collection_card(request: Request) -> Response:
         raise HTTPException(404)
     try:
         card = await fetch_collection_card(
-            client=ClientSession(trust_env=True),
+            client=context["aiohttp"],
             collection_id=collection_id
         )
     except ClientResponseError:
@@ -148,11 +144,7 @@ async def collection_card(request: Request) -> Response:
         font_size=20
     )
     height = 102 + len(collection_name) * 20 * 1.2
-    jinja_env = Environment(
-        trim_blocks=True,
-        loader=FileSystemLoader("src/cards/"),
-        auto_reload=False
-    )
+    jinja_env: Environment = context["jinja"]
     tmpl = jinja_env.get_template("collection_card.svg")
     svg_text = tmpl.render(
         height=height,
@@ -189,58 +181,53 @@ async def bingo_card(request: Request) -> Response:
 
     async with get_db_session() as db:
         bingo_card = await db_get_bingo_card(db, user_id)
-        api = ShikimoriAPI()
-        async with api:
-            if bingo_card is None:
+        api: ShikimoriAPI = context["shikimori"]
+        if bingo_card is None:
+            history = await api.users.history(
+                user_id=user_id,
+                page=1,
+                limit=1
+            )
+            if len(history) == 0:
+                raise HTTPException(400)
+
+            bingo_card = BingoCard(
+                user_id=user_id,
+                last_history_id=history[0].id,
+                stats=generate_bingo_card(16, product_types)
+            )
+
+            db.add(bingo_card)
+            await db.commit()
+        else:
+            if count_completed_tasks(bingo_card.stats) < len(bingo_card.stats):
                 history = await api.users.history(
                     user_id=user_id,
                     page=1,
-                    limit=1
+                    limit=100
                 )
-                if len(history) == 0:
-                    raise HTTPException(400)
-
-                bingo_card = BingoCard(
-                    user_id=user_id,
-                    last_history_id=history[0].id,
-                    stats=generate_bingo_card(16, product_types)
-                )
-
-                db.add(bingo_card)
-                await db.commit()
-            else:
-                if count_completed_tasks(bingo_card.stats) < len(bingo_card.stats):
-                    history = await api.users.history(
-                        user_id=user_id,
-                        page=1,
-                        limit=100
-                    )
-                    if len(history) != 0:
-                        # [! Change this code only if you have checked it thoroughly
-                        bingo_stats: dict = bingo_card.stats.copy()
-                        for h in history:
-                            if h.id == bingo_card.last_history_id:
-                                break
-                            for k, v in bingo_stats.items():
-                                if v is not None:
-                                    continue
-                                task_check = BINGO_TASKS[int(k) - 1]
-                                if not await task_check.check(api, h):
-                                    continue
-                                bingo_stats[k] = f"{get_product_type(h.target)}-{h.target.id}"
-                        bingo_card.stats = bingo_stats
-                        # !]
-                        bingo_card.last_history_id = history[0].id
-                        await db.commit()
-                else:
-                    bingo_card.stats = generate_bingo_card(16, product_types)
+                if len(history) != 0:
+                    # [! Change this code only if you have checked it thoroughly
+                    bingo_stats: dict = bingo_card.stats.copy()
+                    for h in history:
+                        if h.id == bingo_card.last_history_id:
+                            break
+                        for k, v in bingo_stats.items():
+                            if v is not None:
+                                continue
+                            task_check = BINGO_TASKS[int(k) - 1]
+                            if not await task_check.check(api, h):
+                                continue
+                            bingo_stats[k] = f"{get_product_type(h.target)}-{h.target.id}"
+                    bingo_card.stats = bingo_stats
+                    # !]
+                    bingo_card.last_history_id = history[0].id
                     await db.commit()
+            else:
+                bingo_card.stats = generate_bingo_card(16, product_types)
+                await db.commit()
 
-        jinja_env = Environment(
-            trim_blocks=True,
-            loader=FileSystemLoader("src/cards/"),
-            auto_reload=False
-        )
+        jinja_env: Environment = context["jinja"]
         tmpl = jinja_env.get_template("bingo_card.svg")
         svg_text = tmpl.render(
             height=1000,
@@ -256,7 +243,7 @@ async def bingo_card(request: Request) -> Response:
                     if stat.startswith("anime") else
                     "system/mangas/preview/{}.jpg"
                 ).format(stat.split("-")[1])
-                for n, stat in bingo_card.stats.items()
+                for stat in bingo_card.stats.values()
                 if stat is not None
             },
             stats_descr={
