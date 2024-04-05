@@ -82,7 +82,7 @@ class GenresCheck(Check):
     def __init__(self, genres: Union[str, List[str]]) -> None:
         if isinstance(genres, str):
             genres = [genres]
-        self.genres = genres
+        self._genres = genres
 
     async def check(self, api: ShikimoriAPI, history: History) -> bool:
         if history.target is None:
@@ -93,7 +93,7 @@ class GenresCheck(Check):
         genres = [g.russian for g in data.genres]
         if len(genres) == 0:
             return False
-        return any([i in genres for i in self.genres])
+        return any([i in genres for i in self._genres])
 
 
 class PlannedMoreCompletedCheck(Check):
@@ -103,6 +103,30 @@ class PlannedMoreCompletedCheck(Check):
         product_type = get_product_type(history.target)
         data = await get_product_info(api, product_type, history.target.id)
         return data.rates_statuses_stats[0].value > data.rates_statuses_stats[1].value
+
+
+class CompletedLessNUsersCheck(Check):
+    def __init__(self, n: int) -> None:
+        self._n = n
+
+    async def check(self, api: ShikimoriAPI, history: History) -> bool:
+        if history.target is None:
+            return False
+        product_type = get_product_type(history.target)
+        data = await get_product_info(api, product_type, history.target.id)
+        return data.rates_statuses_stats[1].value < self._n
+
+
+class AddListLessNUsersCheck(Check):
+    def __init__(self, n: int) -> None:
+        self._n = n
+
+    async def check(self, api: ShikimoriAPI, history: History) -> bool:
+        if history.target is None:
+            return False
+        product_type = get_product_type(history.target)
+        data = await get_product_info(api, product_type, history.target.id)
+        return sum([r.value for r in data.rates_statuses_stats]) < self._n
 
 
 class StudiosNumMoreNCheck(Check):
@@ -120,7 +144,9 @@ class StudiosNumMoreNCheck(Check):
 
 
 class AnimeAdaptationCheck(Check):
-    def __init__(self, kind: str) -> None:
+    def __init__(self, kind: Union[str, List[str]]) -> None:
+        if isinstance(kind, str):
+            kind = [kind]
         self._kind = kind
 
     async def check(self, api: ShikimoriAPI, history: History) -> bool:
@@ -134,7 +160,7 @@ class AnimeAdaptationCheck(Check):
             if (
                 rel.relation == "Adaptation" and
                 rel.manga is not None and
-                rel.manga.kind == self._kind
+                any([rel.manga.kind == k for k in self._kind])
             ):
                 return True
         return False
@@ -151,8 +177,9 @@ class BingoTask:
 BINGO_TASKS = [
     BingoTask("Посмотри любое аниме.", WatchedAnimeCheck, 1, ["anime"]),
     BingoTask("Прочитай любую мангу / ранобэ.", ReadMangaRanobeCheck, 1, ["manga", "ranobe"]),
-    BingoTask("Посмотри аниме, основанное на манге.", WatchedAnimeCheck & AnimeAdaptationCheck("manga"), 0.5, ["anime"]),
     BingoTask("Посмотри фильм.", WatchedAnimeCheck & FuncCheck(lambda h: h.target.kind == "movie"), 0.5, ["anime"]),
+    BingoTask("Посмотри OVA / ONA.", WatchedAnimeCheck & FuncCheck(lambda h: h.target.kind in ["ova", "ona"]), 0.5, ["anime"]),
+    BingoTask("Посмотри аниме, основанное на манге.", WatchedAnimeCheck & AnimeAdaptationCheck("manga"), 0.5, ["anime"]),
     BingoTask("Посмотри аниме с оценкой 8 и выше.", WatchedAnimeCheck & FuncCheck(lambda h: h.target.score >= 8), 0.5, ["anime"]),
     BingoTask("Прочитай мангу / ранобэ с оценкой 8 и выше.", ReadMangaRanobeCheck & FuncCheck(lambda h: h.target.score >= 8), 0.5, ["manga", "ranobe"]),
     BingoTask("Посмотри аниме с оценкой 6 и ниже.", WatchedAnimeCheck & FuncCheck(lambda h: h.target.score <= 6), 0.5, ["anime"]),
@@ -191,6 +218,10 @@ BINGO_TASKS = [
     BingoTask("Посмотри аниме, в котором 30 серий и больше.", WatchedAnimeCheck & FuncCheck(lambda h: max(h.target.episodes, h.target.episodes_aired) >= 30), 0.5, ["anime"]),
     BingoTask("Посмотри аниме от нескольких студий.", WatchedAnimeCheck & StudiosNumMoreNCheck(1), 0.3, ["anime"]),
     BingoTask("Начни смотреть аниме в онгоинге.", FuncCheck(lambda h: h.target.status == "ongoing" and (h.description == "Смотрю" or "эпизод" in h.description)), 0.3, ["anime"]),
-    BingoTask("Посмотри аниме, которое добавили больше в запланировано, чем просмотрено.", WatchedAnimeCheck & PlannedMoreCompletedCheck(), 0.5, ["anime"]),
-    BingoTask("Прочитай мангу / ранобэ, которое добавили больше в запланировано, чем прочитано.", ReadMangaRanobeCheck & PlannedMoreCompletedCheck(), 0.5, ["manga", "ranobe"])
+    BingoTask("Посмотри аниме, которое больше в запланированом, чем просмотреном.", WatchedAnimeCheck & PlannedMoreCompletedCheck(), 0.5, ["anime"]),
+    BingoTask("Прочитай мангу / ранобэ, которое больше в запланированом, чем прочитаном.", ReadMangaRanobeCheck & PlannedMoreCompletedCheck(), 0.5, ["manga", "ranobe"]),
+    BingoTask("Посмотри аниме, которое посмотрело меньше 10000 пользователей.", WatchedAnimeCheck & CompletedLessNUsersCheck(10000), 0.5, ["anime"]),
+    BingoTask("Прочитай мангу / ранобэ, которое прочитало меньше 1000 пользователей.", ReadMangaRanobeCheck & CompletedLessNUsersCheck(1000), 0.5, ["manga", "ranobe"]),
+    BingoTask("Посмотри аниме, которое добавили в список меньше 50000 пользователей.", WatchedAnimeCheck & AddListLessNUsersCheck(50000), 0.5, ["anime"]),
+    BingoTask("Прочитай мангу / ранобэ, которое добавили в список меньше 10000 пользователей.", ReadMangaRanobeCheck & AddListLessNUsersCheck(10000), 0.5, ["manga", "ranobe"]),
 ]
