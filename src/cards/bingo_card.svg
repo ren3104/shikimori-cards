@@ -15,8 +15,8 @@
 {% endblock %}
 {% block content %}
     <defs>
-        {% for stat, url in image_urls.items() %}
-            <image id="p-{{ stat }}" href="{{ url }}" preserveAspectRatio="xMidYMax meet" height="{{ cell_height }}" width="{{ cell_width }}" />
+        {% for stat, poster in posters.items() %}
+            <image id="p-{{ stat }}" src="{{ poster }}" preserveAspectRatio="xMidYMax meet" height="{{ cell_height }}" width="{{ cell_width }}" />
         {% endfor %}
     </defs>
     <text class="title" x="50%" y="40">SHIKIMORI БИНГО</text>

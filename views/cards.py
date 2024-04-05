@@ -1,14 +1,16 @@
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.exceptions import HTTPException
-from aiohttp import ClientResponseError
+from aiohttp import ClientSession, ClientResponseError
 from shikithon import ShikimoriAPI
 from shikithon.exceptions import ShikimoriAPIResponseError
 from jinja2 import Environment
 from starlette_context import context
 
+import asyncio
 from datetime import datetime, timedelta
-from typing import get_args
+from base64 import b64encode
+from typing import Tuple, get_args
 
 from src.fetchers.user_fetcher import fetch_user_card
 from src.fetchers.collection_fetcher import fetch_collection_card
@@ -227,6 +229,24 @@ async def bingo_card(request: Request) -> Response:
                 bingo_card.stats = generate_bingo_card(16, product_types)
                 await db.commit()
 
+        async def _get_poster(stat: str, url: str) -> Tuple[str, str]:
+            client: ClientSession = context["aiohttp"]
+            async with client.get(url) as resp:
+                return stat, "data:image/jpg;base64," + b64encode(await resp.read()).decode("ascii")
+            
+        posters = dict(await asyncio.gather(*[
+            _get_poster(
+                stat=stat,
+                url="https://shikimori.one/" + (
+                    "system/animes/preview/{}.jpg"
+                    if stat.startswith("anime") else
+                    "system/mangas/preview/{}.jpg"
+                ).format(stat.split("-")[1])
+            )
+            for stat in bingo_card.stats.values()
+            if stat is not None
+        ]))
+
         jinja_env: Environment = context["jinja"]
         tmpl = jinja_env.get_template("bingo_card.svg")
         svg_text = tmpl.render(
@@ -237,15 +257,7 @@ async def bingo_card(request: Request) -> Response:
             cell_width=150,
             cell_gap=20,
             bingo_stats=bingo_card.stats,
-            image_urls = {
-                stat: "https://shikimori.one/" + (
-                    "system/animes/preview/{}.jpg"
-                    if stat.startswith("anime") else
-                    "system/mangas/preview/{}.jpg"
-                ).format(stat.split("-")[1])
-                for stat in bingo_card.stats.values()
-                if stat is not None
-            },
+            posters=posters,
             stats_descr={
                 n: wrap_text_multiline(
                     text=BINGO_TASKS[int(n) - 1].description,
