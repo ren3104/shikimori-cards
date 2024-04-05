@@ -7,7 +7,7 @@ from starlette.middleware import Middleware
 from starlette_context.middleware import RawContextMiddleware
 from starlette_context.plugins import Plugin
 from starlette_context import context
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientTimeout
 from shikithon import ShikimoriAPI
 from jinja2 import Environment, FileSystemLoader
 
@@ -24,7 +24,10 @@ class AiohttpSessionPlugin(Plugin):
         self, _: Union[Request, HTTPConnection]
     ) -> Optional[Any]:
         """Runs always on request."""
-        return ClientSession(trust_env=True)
+        return ClientSession(
+            timeout=ClientTimeout(10),
+            trust_env=True
+        )
 
     async def enrich_response(self, _: Union[Response, Message]) -> None:
         """Runs always on response."""
