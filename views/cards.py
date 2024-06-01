@@ -143,7 +143,8 @@ async def collection_card(request: Request) -> Response:
     collection_name=wrap_text_multiline(
         text=card.title,
         width=360,
-        font_size=20
+        font_size=20,
+        max_lines=2
     )
     height = 102 + len(collection_name) * 20 * 1.2
     jinja_env: Environment = context["jinja"]

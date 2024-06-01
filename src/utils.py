@@ -2,7 +2,7 @@ from starlette.responses import Response
 from hyphen import Hyphenator
 
 import math
-from textwrap import shorten
+from textwrap import TextWrapper
 from re import search
 from email.utils import formatdate
 from typing import Optional, List
@@ -98,70 +98,124 @@ def k_formatter(value: int) -> str:
     return str(value)
 
 
+class PixelTextWrapper(TextWrapper):
+    def __init__(self, *args, **kwargs):
+        self.font_size = kwargs.pop("font_size", 12)
+        self.use_hyphenator = kwargs.pop("use_hyphenator", None)
+        super().__init__(*args, **kwargs)
+
+    def _handle_long_word(self, reversed_chunks, cur_line, cur_width, width):
+        if width < 1 * self.font_size:
+            space_left = 1 * self.font_size
+        else:
+            space_left = width - cur_width
+
+        if self.break_long_words:
+            end = int(space_left // self.font_size)
+            chunk = reversed_chunks[-1]
+            if self.break_on_hyphens and measure_text(chunk, self.font_size) > space_left:
+                hyphen = chunk.rfind('-', 0, int(space_left // self.font_size))
+                if hyphen > 0 and any(c != '-' for c in chunk[:hyphen]):
+                    end = hyphen + 1
+            cur_line.append(chunk[:end])
+            reversed_chunks[-1] = chunk[end:]
+        elif not cur_line:
+            cur_line.append(reversed_chunks.pop())
+
+    def _wrap_chunks(self, chunks):
+        lines = []
+        if self.width <= 0:
+            raise ValueError("invalid width %r (must be > 0)" % self.width)
+        if self.max_lines is not None:
+            if self.max_lines > 1:
+                indent = self.subsequent_indent
+            else:
+                indent = self.initial_indent
+            if measure_text(indent + self.placeholder.lstrip(), self.font_size) > self.width:
+                raise ValueError("placeholder too large for max width")
+
+        chunks.reverse()
+
+        while chunks:
+            cur_line = []
+            cur_width = 0
+            hyphenated_last = False
+
+            if lines:
+                indent = self.subsequent_indent
+            else:
+                indent = self.initial_indent
+
+            width = self.width - measure_text(indent, self.font_size)
+
+            if self.drop_whitespace and chunks[-1].strip() == '' and lines:
+                del chunks[-1]
+
+            while chunks:
+                w = measure_text(chunks[-1], self.font_size)
+
+                if cur_width + w <= width:
+                    cur_line.append(chunks.pop())
+                    cur_width += w
+                else:
+                    if self.use_hyphenator and (width - cur_width >= 2 * self.font_size):
+                        hyphenated_chunk = self.use_hyphenator.wrap(chunks[-1], width - cur_width // self.font_size)
+                        if hyphenated_chunk:
+                            cur_line.append(hyphenated_chunk[0])
+                            chunks[-1] = hyphenated_chunk[1]
+                            hyphenated_last = True
+                    break
+
+            if chunks and measure_text(chunks[-1], self.font_size) > width and not hyphenated_last:
+                self._handle_long_word(chunks, cur_line, cur_width, width)
+                cur_width= sum([measure_text(i, self.font_size) for i in cur_line])
+
+            if self.drop_whitespace and cur_line and cur_line[-1].strip() == '':
+                cur_width -= measure_text(cur_line[-1], self.font_size)
+                del cur_line[-1]
+
+            if cur_line:
+                if (self.max_lines is None or
+                    len(lines) + 1 < self.max_lines or
+                    (not chunks or
+                     self.drop_whitespace and
+                     len(chunks) == 1 and
+                     not chunks[0].strip()) and cur_width <= width):
+                    
+                    lines.append(indent + ''.join(cur_line))
+                else:
+                    while cur_line:
+                        if (cur_line[-1].strip() and
+                            cur_width + measure_text(self.placeholder, self.font_size) <= width):
+                            cur_line.append(self.placeholder)
+                            lines.append(indent + ''.join(cur_line))
+                            break
+                        cur_width -= measure_text(cur_line[-1], self.font_size)
+                        del cur_line[-1]
+                    else:
+                        if lines:
+                            prev_line = lines[-1].rstrip()
+                            if measure_text(prev_line + self.placeholder, self.font_size) <= self.width:
+                                lines[-1] = prev_line + self.placeholder
+                                break
+                        lines.append(indent + self.placeholder.lstrip())
+                    break
+
+        return lines
+    
+
 def wrap_text_multiline(
     text: str,
     width: int,
     font_size: int = 10,
     max_lines: int = 3
 ) -> List[str]:
-    sep_width = LETTER_WIDTHS[" "] * font_size
-    hyphen_width = LETTER_WIDTHS["-"] * font_size
-
-    lines: List[str] = []
-
-    line = ""
-    line_width = 0
-    for word in text.split():
-        word_width = measure_text(word, font_size)
-        if line_width == 0:
-            line += word
-            line_width += word_width
-            continue
-        elif line_width + sep_width + word_width <= width:
-            line += " " + word
-            line_width += word_width + sep_width
-            continue
-
-        syllables = HYPHENATOR.syllables(word)
-        if len(syllables) > 0:
-            first_part = ""
-            first_part_width = 0
-            syllable_i = 0
-            for syllable in syllables[:-1]:
-                syllable_width = measure_text(syllable, font_size)
-                if sep_width + first_part_width + syllable_width + hyphen_width <= width - line_width:
-                    first_part += syllable
-                    first_part_width += syllable_width
-                else:
-                    break
-                syllable_i += 1
-
-            if first_part_width > 0:
-                line += f" {first_part}-"
-                line_width += sep_width + first_part_width + hyphen_width
-                lines.append(line)
-                second_part = "".join(syllables[syllable_i:])
-                line = second_part
-                line_width = measure_text(second_part, font_size)
-                continue
-            
-        lines.append(line)
-        line = word
-        line_width = word_width
-
-    if line_width > 0:
-        lines.append(line)
-
-    if len(lines) > max_lines:
-        lines = lines[:max_lines]
-        last_line = lines.pop(-1)
-        lines.append(shorten(
-            text=last_line,
-            width=len(last_line) - 1,
-            placeholder=" ..."
-        ))
-
-    return lines
+    return PixelTextWrapper(
+        width=width,
+        font_size=font_size,
+        max_lines=max_lines,
+        placeholder=" ..."
+    ).wrap(text)
 
 
 def measure_text(text: str, font_size: int = 10) -> float:
