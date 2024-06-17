@@ -26,12 +26,11 @@ from src.utils import (
     send_svg_file,
     calculate_ring_progress,
     k_formatter,
-    measure_text,
-    wrap_text_multiline,
     parse_integer,
     parse_boolean,
     parse_hex_color
 )
+from src.text_wrapper import measure_text, wrap_text_multiline
 from src.themes import themes
 from src.icons import icons
 
