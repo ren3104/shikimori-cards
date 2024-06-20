@@ -1,7 +1,6 @@
 from starlette.responses import Response
 
 import math
-from textwrap import TextWrapper
 from re import search
 from email.utils import formatdate
 from typing import Optional
@@ -11,7 +10,7 @@ def send_svg_file(
     svg_text: str,
     file_name: str,
     cache_seconds: int = 3600,
-    swr_seconds: int = 43200
+    swr_seconds: int = 86400
 ) -> Response:
     return Response(
         content=svg_text,

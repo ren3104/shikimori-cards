@@ -1,11 +1,12 @@
 from hyphen import Hyphenator
 
 from textwrap import TextWrapper
-from typing import List
+from typing import Optional, List
 
 
 HYPHENATOR = Hyphenator("ru_RU", directory="pyhyphen")
 
+# Sans-Serif font
 LETTER_WIDTHS = {
     ' ': 0.27783, '!': 0.27783, '"': 0.355, '#': 0.55617, '$': 0.55617, '%': 0.88917, '&': 0.667,
     "'": 0.191, '(': 0.333, ')': 0.333, '*': 0.38917, '+': 0.584, ',': 0.27783, '-': 0.333,
@@ -42,9 +43,15 @@ KERN_MODS = {
 
 
 class PixelTextWrapper(TextWrapper):
-    def __init__(self, *args, **kwargs):
-        self.font_size = kwargs.pop("font_size", 12)
-        self.use_hyphenator = kwargs.pop("use_hyphenator", None)
+    def __init__(
+        self,
+        *args,
+        font_size: int = 12,
+        use_hyphenator: Optional[Hyphenator] = None,
+        **kwargs
+    ):
+        self.font_size = font_size
+        self.use_hyphenator = use_hyphenator
         super().__init__(*args, **kwargs)
 
     def _handle_long_word(self, reversed_chunks, cur_line, cur_width, width):
@@ -102,7 +109,25 @@ class PixelTextWrapper(TextWrapper):
                     cur_width += w
                 else:
                     if self.use_hyphenator and (width - cur_width >= 2 * self.font_size):
-                        hyphenated_chunk = self.use_hyphenator.wrap(chunks[-1], width - cur_width // self.font_size)
+                        hyphen = "-"
+                        hyphen_width = measure_text(hyphen, self.font_size)
+                        word_pairs = self.use_hyphenator.pairs(chunks[-1])
+                        max_word_width = width - cur_width - hyphen_width
+                        while word_pairs:
+                            if word_pairs[-1][0].endswith(hyphen):
+                                cur_max_width = max_word_width - hyphen_width
+                            else:
+                                cur_max_width = max_word_width
+                            if measure_text(word_pairs[-1][0], self.font_size) > cur_max_width:
+                                word_pairs.pop()
+                            else:
+                                break
+                        if word_pairs:
+                            if round(cur_max_width) == round(max_word_width):
+                                word_pairs[-1][0] += hyphen
+                            hyphenated_chunk = word_pairs[-1]
+                        else:
+                            hyphenated_chunk = []
                         if hyphenated_chunk:
                             cur_line.append(hyphenated_chunk[0])
                             chunks[-1] = hyphenated_chunk[1]
@@ -156,6 +181,7 @@ def wrap_text_multiline(
     return PixelTextWrapper(
         width=width,
         font_size=font_size,
+        use_hyphenator=HYPHENATOR,
         max_lines=max_lines,
         placeholder=" ..."
     ).wrap(text)
